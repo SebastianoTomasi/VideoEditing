@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Miniatura</title>
+<!--
+  Channel template for thumbnails, 1280×720 CSS pixels (rendered at 3×).
+  Copy it into the video's folder as miniatura-A.html, -B.html, -C.html,
+  set data-layout, fill the slots, delete the slots a layout does not use.
+  Paths are relative to the video's folder (videos/<date>-<name>/).
+  Nothing in the bottom-right 256×108 px: YouTube's duration badge covers it.
+-->
+<style>
+  @font-face { font-family: "Titolo"; src: url("../../canale/font/titolo.ttf"); }
+
+  :root {
+    --base: #10161f;     /* channel background colour */
+    --accent: #ffd60a;   /* highlighted words */
+    --text: #ffffff;
+    --outline: #0a0a0a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: var(--base); }
+
+  .miniatura { position: relative; width: 1280px; height: 720px; overflow: hidden; background: var(--base); }
+  .sfondo {
+    position: absolute; inset: -20px;
+    background-size: cover; background-position: center;
+    filter: brightness(0.4) blur(8px);
+  }
+  .soggetto, .prima, .dopo { position: absolute; }
+  .soggetto img, .prima img, .dopo img {
+    width: 100%; height: 100%; object-fit: cover;
+    border-radius: 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
+  }
+  .faccia { position: absolute; left: 0; bottom: 0; width: 46%; height: 100%; }
+  .faccia img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  .testo {
+    position: absolute;
+    font-family: "Titolo", Impact, "Arial Black", sans-serif;
+    text-transform: uppercase; line-height: 0.95; letter-spacing: 1px;
+    color: var(--text);
+    -webkit-text-stroke: 12px var(--outline); paint-order: stroke fill;
+  }
+  .testo .accento { color: var(--accent); }
+
+  /* A, the result: words on the left, the result large on the right */
+  [data-layout="A"] .testo { left: 40px; top: 50px; width: 560px; font-size: 128px; }
+  [data-layout="A"] .soggetto { right: 40px; top: 60px; width: 640px; height: 470px; }
+
+  /* B, face and tool: face on the left, words and interface on the right */
+  [data-layout="B"] .testo { left: 620px; top: 40px; width: 620px; font-size: 110px; }
+  [data-layout="B"] .soggetto { right: 40px; top: 290px; width: 580px; height: 300px; }
+
+  /* C, before and after, or one number: big words on top, two crops below */
+  [data-layout="C"] .testo { left: 40px; top: 40px; width: 1200px; font-size: 150px; }
+  [data-layout="C"] .prima { left: 40px; top: 330px; width: 520px; height: 290px; }
+  [data-layout="C"] .dopo { left: 600px; top: 330px; width: 400px; height: 290px; }
+</style>
+</head>
+<body>
+  <div class="miniatura" data-layout="A">
+    <div class="sfondo" style="background-image: url('fotogrammi/SFONDO.png')"></div>
+    <div class="faccia"><img src="immagini/FACCIA.png" alt=""></div>
+    <div class="soggetto"><img src="fotogrammi/SOGGETTO.png" alt=""></div>
+    <div class="prima"><img src="fotogrammi/PRIMA.png" alt=""></div>
+    <div class="dopo"><img src="fotogrammi/DOPO.png" alt=""></div>
+    <div class="testo">Due <span class="accento">parole</span></div>
+  </div>
+</body>
+</html>

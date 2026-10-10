@@ -53,6 +53,17 @@ shell, so paths with spaces work.
   recording's resolution and frame rate; other recordings are scaled and
   converted to match, with a warning. Audio is AAC.
 
+- `--stima` stops after building the timeline: it prints the length of the
+  edit and refuses cuts with no silence, for the proposal.
+- `montaggio.json` records every piece with its times in the edit and in its
+  recording, so that controlla.py and the agent can map edit times back.
+
+## fotogrammi.py
+
+- One frame every `--ogni` seconds (20 by default), optionally cropped, scaled
+  to 480 px wide, labelled with its time by `drawtext`, and tiled 4×3 into
+  `foglio_NN.png`.
+
 ## controlla.py
 
 - After the transcriber transcribes the edit, the words around each join are

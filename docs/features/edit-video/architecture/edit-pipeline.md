@@ -29,7 +29,10 @@ instructions live) are in the
 
 - **The `edit-video` skill:** a `SKILL.md` with the fixed rules and the steps
   of the conversation, followed by the agent. The agent alone writes the cut
-  list and the notes, and it samples frames with ffmpeg for the frame check.
+  list and the notes.
+- **`fotogrammi.py`:** samples frames of a video into contact sheets, each
+  frame labelled with its time, for the frame check and for thumbnail
+  candidates.
 - **The playbook:** a plain file shared with the other skills; the agent reads
   it and never writes it.
 - **`prepara.py`:** for each recording, reads the transcript, measures the
@@ -53,9 +56,11 @@ the agent runs them.
 | `tagli.json`, the cut list | the agent | `monta.py`, `controlla.py`, the agent |
 | `tagli-<n>.json`, earlier cut lists | the agent, before it overwrites `tagli.json` | the agent, to go back |
 | `trascrizione-compatta.md`, the compact transcript | `prepara.py` | the agent |
-| `fotogrammi/`, sampled frames | the agent, through ffmpeg | the agent |
+| `silenzi.json`, the measured silences, cached per recording | `prepara.py` or `monta.py` | `prepara.py`, `monta.py` |
+| `fotogrammi/`, sheets of sampled frames | `fotogrammi.py` | the agent |
 | `note.md`, the notes | the agent | the agent, in later sessions |
 | `montaggio.mp4`, the edit | `monta.py` | `controlla.py`, the user |
+| `montaggio.json`, the pieces of the edit with their times in the edit and in the recordings | `monta.py` | `controlla.py`, the agent, to map the user's corrections |
 | the edit's transcript | the transcriber | `controlla.py` |
 | `montaggio.srt`, the subtitles | `controlla.py` | the user |
 
