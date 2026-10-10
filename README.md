@@ -1,0 +1,3 @@
+# VideoEditing
+
+Video editing workspace.
