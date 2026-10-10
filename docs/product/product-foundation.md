@@ -27,16 +27,28 @@ out.
 - **Edit a video:** the cut list is proposed and approved, the edit is rendered
   and checked, and corrections follow on request
   ([edit-video](../features/edit-video/product/edit-a-video.md)).
-- **Feedback on the spoken text:** the agent judges what the user says against
-  written guidance on making a decent YouTube video.
-- **Thumbnail:** the agent proposes a thumbnail for the video.
+- **Feedback on the spoken text:** with each cut proposal, or alone on
+  request, the agent judges what the user says against the playbook
+  ([edit-video](../features/edit-video/product/edit-a-video.md)).
+- **Thumbnail:** when the edit is final, the agent proposes a thumbnail for the
+  video ([thumbnail](../features/thumbnail/product/propose-a-thumbnail.md)).
+- **Video script:** on request, before recording, the agent writes the video
+  script (copione) following the playbook
+  ([video-script](../features/video-script/product/write-a-video-script.md)).
+
+## Playbook
+
+The playbook is the written guidance on making a decent YouTube video, spoken
+text included. The agent applies it to its feedback on the text, to its cut
+proposals, to its thumbnails, and to the video scripts it writes. It starts
+from research in `docs/sources/`, and the user can change it at any time.
 
 ## Primary user
 
 The only user is the project's author, on this PC, asking a coding agent
 (Claude Code, possibly Codex) opened in this repository. The system may assume
-that ffmpeg, Docker with GPU access, and the local transcriber are installed,
-and that the user can read a table of timestamps. It has no graphical
+that ffmpeg, Docker with GPU access, the local transcriber, Edge, and Codex
+are installed, and that the user can read a table of timestamps. It has no graphical
 interface, no installer, and no support for anyone else's machine.
 
 ## Recordings handled
@@ -67,14 +79,19 @@ the edit ("put back the sentence at 3:20"), and the agent renders again.
 
 The system handles the recordings, which show the user's face, voice, and
 screen, and the screen can show other people's data, secrets, and unrelated
-projects. It also handles the transcripts, the cut lists and notes, the edits,
-and frames sampled from the recordings.
+projects. It also handles the transcripts, the cut lists and notes, the edits
+and their subtitles, frames sampled from the recordings, thumbnails, video
+scripts, and a reference photo of the user.
 
-- Everything about a video (recordings, transcripts, cut lists, notes, edits)
-  stays on this PC, and none of it goes into git or to GitHub. The agent reads
-  transcripts and sampled frames, so those pass through its model provider
-  (Anthropic or OpenAI) like any file it opens; nothing else is sent to an
-  external service. The user publishes by hand.
+- Everything about a video (recordings, transcripts, cut lists, notes, edits,
+  subtitles, thumbnails, video scripts) and the reference photo stay on this
+  PC, and none of it goes into git or to GitHub. The agent reads transcripts
+  and sampled frames, so those pass through its model provider (Anthropic or
+  OpenAI) like any file it opens. The user publishes by hand.
+- The only other external service is OpenAI's image generation, used for
+  thumbnails alone. It may receive a text description of the image, the
+  reference photo, the user's face taken from the recordings, and frames that
+  passed the frame check; nothing else is sent to an external service.
 - Before proposing the cut list, the agent samples frames and flags what should
   not be visible, such as the sidebar with other sessions, email addresses,
   keys, or client data. The check is a sample, not a guarantee. The system does
@@ -99,7 +116,22 @@ These are outside the product for now; each would need a new decision:
   interface or an installer;
 - recordings with several voices (meetings, interviews), phone footage, and
   languages other than Italian;
-- vertical videos and shorts;
+- vertical videos and shorts, kept for later in
+  [SebastianoTomasi/VideoEditing#1](https://github.com/SebastianoTomasi/VideoEditing/issues/1);
 - exporting a timeline to a video editor such as DaVinci Resolve or Premiere;
-- blurring parts of the screen;
-- writing the script of a recording.
+- blurring parts of the screen.
+
+## Success criteria
+
+The product works when, checked from outside:
+
+1. no word cut in half and no repeated sentence reaches an edit without having
+   been reported;
+2. waits and pauses in the edit follow the pace rule of the
+   [edit-video feature](../features/edit-video/product/edit-a-video.md#cuts-and-pace);
+3. from asking for an edit to having it, the user's own work (reading the
+   proposal, listening to the reported points, approving) stays under 10
+   minutes;
+4. rendering and checking an 18-minute recording take under 3 minutes on this
+   PC;
+5. nothing about the videos, and not the reference photo, is in git.
