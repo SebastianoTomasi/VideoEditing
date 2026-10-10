@@ -11,3 +11,17 @@ holds nothing but the references that make the advisor reachable: Claude Code
 expands the import, Codex follows the sentence. Everything else in it is yours
 to write, and no later delivery will touch what you add.
 -->
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in GitHub Issues on SebastianoTomasi/VideoEditing via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one root `GLOSSARY.md` plus `docs/adr/`. See `docs/agents/domain.md`.
