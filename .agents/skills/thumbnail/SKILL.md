@@ -52,10 +52,14 @@ chooses and uploads.
 3. **Pictures.** For B, generate the face from the reference photo. For A and
    C, generate a sharper or stylized screenshot, or an illustration, only when
    it makes the thumbnail clearer than the real frame.
-   - Write a prompt file with: what the picture shows; its composition and
-     where the empty space for the words goes; landscape 16:9; for a face,
-     "keep the person's identity, face, hair and beard exactly as in the
-     attached photo"; and "no text, letters, logos or watermarks".
+   - Write a prompt file that starts with `$imagegen` and says: what the
+     picture shows; its composition; for a face, "keep the person's identity,
+     face, hair and beard exactly as in the attached photo"; and "no text,
+     letters, logos or watermarks". Ask for the shape of the slot it fills:
+     for the face of B, a portrait (2:3) with the person centred, head and
+     shoulders, on a plain background close to the channel's base colour; for
+     a full background, landscape 16:9 with the empty space where the words
+     go.
    - In Claude Code, run
      `python scripts/miniature.py genera <folder> --prompt <file> --nome B --immagine canale/foto.png`,
      adding `--immagine <frame>` for each frame you send. In Codex, use
