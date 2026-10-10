@@ -5,11 +5,25 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from comune import Piece, Segment, Timeline  # noqa: E402
-from controlla import compare, expected_words, heard_words, subtitles  # noqa: E402
+from controlla import (  # noqa: E402
+    compare,
+    expected_words,
+    heard_words,
+    spread,
+    straddling_words,
+    subtitles,
+)
 
 
 def words_at(text: str, start: float, step: float = 0.5):
     return [(w, start + k * step) for k, w in enumerate(text.split())]
+
+
+class StraddlingWordsTests(unittest.TestCase):
+    def test_a_sentence_crossed_by_a_cut_edge_is_listed_at_that_edge(self):
+        timeline = Timeline([Piece(0, 0.0, 11.0, 1.0, False, 0.0, 11.0)], [], [], [])
+        segments = [[Segment(2.0, 5.0, "tutta dentro"), Segment(9.0, 14.0, "skill di matt pocock")]]
+        self.assertEqual(straddling_words(timeline, segments), [(11.0, {"skill", "di", "matt", "pocock"})])
 
 
 class ExpectedWordsTests(unittest.TestCase):
@@ -42,6 +56,16 @@ class CompareTests(unittest.TestCase):
         problems = compare(self.expected, heard, joins=[3.0])
         self.assertEqual([p.kind for p in problems], ["in più"])
 
+    def test_an_extra_word_of_a_sentence_cut_through_is_not_reported(self):
+        heard = words_at("ecco il primo passo apriamo il file pocock e vediamo il risultato finale", 0.0)
+        straddling = [(3.0, {"skill", "di", "matt", "pocock"})]
+        self.assertEqual(compare(self.expected, heard, joins=[3.0], straddling=straddling), [])
+
+    def test_a_missing_word_of_a_sentence_cut_through_is_still_reported(self):
+        heard = words_at("ecco il primo passo apriamo il e vediamo il risultato finale", 0.0)
+        straddling = [(3.0, {"apriamo", "il", "file"})]
+        self.assertEqual([p.kind for p in compare(self.expected, heard, [3.0], straddling)], ["manca"])
+
     def test_differences_far_from_joins_are_ignored(self):
         heard = words_at("ecco il primo passo apriamo il file e vediamo il risultato", 0.0)
         self.assertEqual(compare(self.expected, heard, joins=[0.0]), [])
@@ -72,6 +96,17 @@ class HeardWordsTests(unittest.TestCase):
     def test_words_are_spread_over_the_segment(self):
         heard = heard_words([Segment(0.0, 2.0, "uno due")])
         self.assertEqual(heard, [("uno", 0.5), ("due", 1.5)])
+
+
+class SpreadTests(unittest.TestCase):
+    def test_words_skip_a_silence_hidden_in_the_segment(self):
+        # A stretched last word: speech 0-4 s, then 4 s of measured silence.
+        spread_words = spread(Segment(0.0, 8.0, "uno due tre quattro"), [(4.0, 8.0)])
+        self.assertEqual([round(t, 2) for _, t in spread_words], [0.5, 1.5, 2.5, 3.5])
+
+    def test_a_hidden_silence_cuts_through_the_middle(self):
+        spread_words = spread(Segment(0.0, 6.0, "uno due"), [(1.0, 5.0)])
+        self.assertEqual([round(t, 2) for _, t in spread_words], [0.5, 5.5])
 
 
 if __name__ == "__main__":

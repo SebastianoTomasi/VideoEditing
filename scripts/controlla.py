@@ -23,11 +23,13 @@ from comune import (  # noqa: E402
     EDIT,
     EDIT_MAP,
     SUBTITLES,
+    Interval,
     Segment,
     Timeline,
     UserError,
     fmt,
     load_segments,
+    load_silences,
     main_wrapper,
     probe,
     timeline_from_json,
@@ -53,23 +55,56 @@ class Problem:
     context: str
 
 
-def spread(segment: Segment) -> list[tuple[str, float]]:
-    """The words of a segment, each at an even share of the segment's time."""
+def spread(segment: Segment, silences: list[Interval] = ()) -> list[tuple[str, float]]:
+    """The words of a segment, each at an even share of its spoken time.
+
+    Measured silences inside the segment are skipped, because the transcriber
+    sometimes stretches a word over the pause that follows it.
+    """
     tokens = words(segment.text)
-    span = segment.end - segment.start
-    return [(w, segment.start + span * (k + 0.5) / len(tokens)) for k, w in enumerate(tokens)]
+    if not tokens:
+        return []
+    spoken: list[Interval] = []
+    cursor = segment.start
+    for s0, s1 in sorted(silences):
+        if s1 <= cursor or s0 >= segment.end:
+            continue
+        if s0 > cursor:
+            spoken.append((cursor, s0))
+        cursor = max(cursor, s1)
+    if cursor < segment.end:
+        spoken.append((cursor, segment.end))
+    total = sum(b - a for a, b in spoken)
+    if total <= 0:
+        spoken, total = [(segment.start, segment.end)], max(segment.end - segment.start, 1e-6)
+    result = []
+    for k, word in enumerate(tokens):
+        offset = total * (k + 0.5) / len(tokens)
+        for a, b in spoken:
+            if offset <= b - a:
+                result.append((word, a + offset))
+                break
+            offset -= b - a
+        else:
+            result.append((word, spoken[-1][1]))
+    return result
 
 
-def expected_words(timeline: Timeline, segments_by_recording: list[list[Segment]]) -> list[Word]:
+def expected_words(
+    timeline: Timeline,
+    segments_by_recording: list[list[Segment]],
+    silences_by_recording: list[list[Interval]] | None = None,
+) -> list[Word]:
     """The words the edit should contain, in order, with their time in the edit."""
     result: list[Word] = []
     for piece in timeline.pieces:
         if piece.silent:
             continue
+        silences = silences_by_recording[piece.recording] if silences_by_recording else []
         for segment in segments_by_recording[piece.recording]:
             if segment.end < piece.src_start or segment.start > piece.src_end:
                 continue
-            for word, t in spread(segment):
+            for word, t in spread(segment, silences):
                 if piece.src_start <= t < piece.src_end:
                     result.append((word, piece.out_start + (t - piece.src_start) / piece.speed))
     return result
@@ -79,6 +114,22 @@ def heard_words(segments: list[Segment]) -> list[Word]:
     return [pair for segment in segments for pair in spread(segment)]
 
 
+def straddling_words(timeline: Timeline, segments_by_recording: list[list[Segment]]) -> list[tuple[float, set[str]]]:
+    """Words of sentences that a cut edge goes through, with the edge's time in the edit.
+
+    Which of their words stay in the edit cannot be told from the transcript.
+    """
+    result = []
+    for piece in timeline.pieces:
+        if piece.silent:
+            continue
+        for segment in segments_by_recording[piece.recording]:
+            for edge, out in ((piece.src_start, piece.out_start), (piece.src_end, piece.out_end)):
+                if segment.start < edge < segment.end:
+                    result.append((out, set(words(segment.text))))
+    return result
+
+
 def _minor(expected: list[str], heard: list[str]) -> bool:
     """One word heard slightly differently: transcription noise, not a cut."""
     if len(expected) != 1 or len(heard) != 1:
@@ -86,8 +137,17 @@ def _minor(expected: list[str], heard: list[str]) -> bool:
     return SequenceMatcher(None, expected[0], heard[0]).ratio() >= 0.6
 
 
-def compare(expected: list[Word], heard: list[Word], joins: list[float]) -> list[Problem]:
-    """Differences between expected and heard words that fall near a join."""
+def compare(
+    expected: list[Word],
+    heard: list[Word],
+    joins: list[float],
+    straddling: list[tuple[float, set[str]]] = (),
+) -> list[Problem]:
+    """Differences between expected and heard words that fall near a join.
+
+    Extra words that belong to a sentence a cut edge goes through, near that
+    edge, are not reported: they may simply be kept.
+    """
     matcher = SequenceMatcher(None, [w for w, _ in expected], [w for w, _ in heard], autojunk=False)
     problems: list[Problem] = []
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
@@ -104,6 +164,10 @@ def compare(expected: list[Word], heard: list[Word], joins: list[float]) -> list
         near = [j for j in joins if low <= j <= high]
         if not near:
             continue
+        if tag == "insert":
+            uncertain = set().union(*(ws for t, ws in straddling if low <= t <= high))
+            if set(extra) <= uncertain:
+                continue
         before = " ".join(w for w, _ in heard[max(0, j1 - CONTEXT_WORDS):j1])
         after = " ".join(w for w, _ in heard[j2:j2 + CONTEXT_WORDS])
         kind = {"delete": "manca", "insert": "in più", "replace": "diverso"}[tag]
@@ -173,8 +237,10 @@ def main() -> None:
         print("Trascrivo il montaggio…", file=sys.stderr)
         transcribe(edit, folder)
     heard = heard_words(load_segments(edit_transcript))
-    expected = expected_words(timeline, [load_segments(transcript_path(p)) for p in recordings])
-    problems = compare(expected, heard, timeline.joins)
+    silences = load_silences(folder, recordings, [probe(p).duration for p in recordings])
+    segments = [load_segments(transcript_path(p)) for p in recordings]
+    expected = expected_words(timeline, segments, silences)
+    problems = compare(expected, heard, timeline.joins, straddling_words(timeline, segments))
 
     actual = probe(edit).duration
     print(f"Montaggio: {fmt(actual)}, {len(timeline.joins)} giunzioni controllate.")

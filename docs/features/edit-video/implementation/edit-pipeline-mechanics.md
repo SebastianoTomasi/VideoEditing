@@ -27,10 +27,15 @@ shell, so paths with spaces work.
   0.3 s, cached in the video's folder.
 - Each line of the compact transcript is one transcriber segment,
   `[start–end] (+pause) text`, in the recording's seconds.
-- A possible retake is two consecutive segments at most 6 s apart whose texts
-  are at least 80 % similar (`difflib`), or the earlier a prefix of the later.
-- Audio without text is a gap between segments that holds no measured silence
-  of comparable length: speech the transcriber may have dropped.
+- A possible retake is a segment followed, among the next three that start
+  within 30 s of it, by one that repeats it: the earlier is a prefix of the
+  later, their first ten words share a run of at least four, or their texts
+  are at least 80 % similar (`difflib`). The window counts from the start of
+  the attempt because the transcriber may stretch its last word over the pause
+  that follows.
+- Audio without text is a gap between segments with at least 1.5 s of sound
+  outside measured silences: speech the transcriber may have dropped. Shorter
+  sounds are mostly fillers and breaths.
 - A wait is a measured silence longer than 5 s.
 - OBS markers come from `ffprobe -show_chapters` and are printed where they
   fall.
@@ -70,6 +75,11 @@ shell, so paths with spaces work.
   compared with the words the cut list keeps there. A missing or repeated
   sentence, or a word that does not match, becomes a potential problem with
   its time in the edit.
+- Word times are estimated by spreading a segment's words over its spoken
+  parts, skipping the measured silences inside it. Extra words heard near a
+  join that belong to a sentence the cut edge goes through are not reported,
+  because which of its words stay cannot be told; missing or different words
+  still are.
 - `ffprobe` checks the edit's duration against the one the cut list predicts.
 - `montaggio.srt` is written from the segments of the edit's transcript.
 

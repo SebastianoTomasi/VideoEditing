@@ -35,11 +35,12 @@ from comune import (  # noqa: E402
 )
 
 WAIT_MIN_SEC = 5.0
-RETAKE_MAX_GAP_SEC = 6.0
+RETAKE_WINDOW_SEC = 30.0  # a retake starts within this long of the attempt it repeats
+RETAKE_LOOKAHEAD = 3  # sentences after an attempt that can be its retake
 RETAKE_RATIO = 0.8
 HIDDEN_SILENCE_MIN_SEC = 1.0
 UNTEXTED_GAP_MIN_SEC = 1.0
-UNTEXTED_SOUND_MIN_SEC = 0.8
+UNTEXTED_SOUND_MIN_SEC = 1.5  # shorter sounds are mostly fillers and breaths
 PAUSE_SHOWN_MIN_SEC = 0.5
 
 LEGEND = (
@@ -59,18 +60,22 @@ def is_retake(earlier: list[str], later: list[str]) -> bool:
     block = SequenceMatcher(None, head_a, head_b, autojunk=False).find_longest_match(
         0, len(head_a), 0, len(head_b)
     )
-    if block.size >= 4 and block.a <= 2 and block.b <= 2:
+    if block.size >= 4:
         return True
     return SequenceMatcher(None, earlier, later, autojunk=False).ratio() >= RETAKE_RATIO
 
 
 def find_retakes(segments: list[Segment]) -> dict[int, int]:
-    """Index of a sentence -> index of the later sentence that seems to retake it."""
+    """Index of a sentence -> index of the later sentence that seems to retake it.
+
+    The window counts from the start of the attempt, because the transcriber
+    sometimes stretches the attempt's last word over the pause that follows.
+    """
     retakes: dict[int, int] = {}
     for i, first in enumerate(segments):
         first_words = words(first.text)
-        for j in (i + 1, i + 2):
-            if j >= len(segments) or segments[j].start - first.end > RETAKE_MAX_GAP_SEC:
+        for j in range(i + 1, min(i + 1 + RETAKE_LOOKAHEAD, len(segments))):
+            if segments[j].start - first.start > RETAKE_WINDOW_SEC:
                 break
             if is_retake(first_words, words(segments[j].text)):
                 retakes[i] = j

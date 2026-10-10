@@ -24,13 +24,29 @@ class RetakeTests(unittest.TestCase):
         self.assertFalse(is_retake(words("Apriamo il terminale e lanciamo il comando."),
                                    words("Il risultato è una lista di file.")))
 
+    def test_the_same_words_inside_both_openings_are_a_retake(self):
+        self.assertTrue(is_retake(
+            words("nient'altro da fare, ok, senza perdere altro tempo, passiamo ad una demo."),
+            words("Ok, quindi senza perdere altro tempo cominciamo con una demo."),
+        ))
+
     def test_only_sentences_close_in_time_count(self):
         near = [Segment(0.0, 3.0, "Apriamo il file di configurazione"),
                 Segment(5.0, 8.0, "Apriamo il file di configurazione adesso")]
         far = [Segment(0.0, 3.0, "Apriamo il file di configurazione"),
-               Segment(12.0, 15.0, "Apriamo il file di configurazione adesso")]
+               Segment(40.0, 43.0, "Apriamo il file di configurazione adesso")]
         self.assertEqual(find_retakes(near), {0: 1})
         self.assertEqual(find_retakes(far), {})
+
+    def test_a_retake_after_a_stretched_word_is_found(self):
+        # From the recording of 2026-10-10: the transcriber stretched "erba."
+        # over the 12 s pause before the retake.
+        segments = [
+            Segment(2.6, 7.3, "Buon salve a tutti, io mi chiamo Sebastiano, quasi PhD in fisica teorica"),
+            Segment(8.6, 21.6, "e programmatore in erba."),
+            Segment(21.6, 23.5, "Salve a tutti, io sono Sebastiano,"),
+        ]
+        self.assertEqual(find_retakes(segments), {0: 2})
 
 
 class CompactLinesTests(unittest.TestCase):
