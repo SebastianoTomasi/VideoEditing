@@ -77,8 +77,9 @@ if it changed since the last check of the whole edit.
   misheard, such as names and technical terms, leaves the spoken words
   otherwise as they were said, and asks the user only about what it cannot
   make out.
-- Chapters for the YouTube description, with timestamps of the edit, proposed
-  by the agent.
+- A YouTube description, proposed by the agent: the video's promise, what it
+  shows, the links the video promises, each checked to open for anyone, and
+  chapters with timestamps of the edit.
 - If the user pressed the OBS marker key while recording, the agent uses the
   markers to find the sentences that went wrong.
 
@@ -100,7 +101,8 @@ subtitles.
 
 - **Success:** the edit in the video's folder, rendered from the cut list the
   user approved, with its subtitles; the user is told its length and the
-  potential problems found at its joins, and gets the proposed chapters.
+  potential problems found at its joins, and gets the proposed description with
+  its chapters.
 - **Rendering fails:** the previous edit stays as it was, and the user is told
   the error.
 - **Transcript without sentence segments:** the feature stops, and the user is

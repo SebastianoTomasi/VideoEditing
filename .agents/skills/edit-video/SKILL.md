@@ -38,7 +38,8 @@ conversation take precedence over this skill.
 `copione.md` when the video has a video script, `tagli.json` (the cut list),
 `tagli-<n>.json` (earlier cut lists), `trascrizione-compatta.md`,
 `silenzi.json`, `fotogrammi/`, `note.md`, `montaggio.mp4`, `montaggio.json`,
-`montaggio.srt`, the edit's transcript, `controllo.json` (the edit at the last
+`montaggio.srt`, `descrizione.txt` (the YouTube description), the edit's
+transcript, `controllo.json` (the edit at the last
 check), and `giunzioni.wav` with its transcript (the stretches the last
 `--cambiate` check transcribed).
 
@@ -172,10 +173,21 @@ The edit is final when the user says so. Then:
 2. Correct `montaggio.srt` with the `fix-transcript` skill, installed with the
    transcriber, using `copione.md`, `note.md`, and the frame sheets as context.
    A full check rewrites `montaggio.srt`, so correct it after the last one.
-3. Report:
-   - chapters for the YouTube description, taken from the spoken signposts in
-     the edit's transcript: the first at 00:00, at least three, each at least
-     10 s long;
+3. Write the YouTube description into `descrizione.txt`: Italian plain text,
+   no emoji, no hashtags unless the user asks for them.
+   - One or two opening sentences with the video's promise, consistent with
+     the title when there is one: search results show them.
+   - A short list of what the video shows, from the edit's transcript.
+   - Every link the video promises ("in descrizione"), from `copione.md` and
+     the transcript. Check that each one opens for anyone: a private GitHub
+     repository does not (`gh repo view <owner>/<name> --json visibility`).
+   - Chapters, taken from the spoken signposts in the edit's transcript: the
+     first at 00:00, at least three, each at least 10 s long.
+   - The closing call to action said in the video, if any.
+
+   Credit other people's tools to their authors.
+4. Report:
+   - the description, and any link in it that does not open for anyone;
    - how many subtitle corrections you made, and the points you could not make
      out, each with its time in the edit;
    - that `montaggio.srt` is ready to upload.
