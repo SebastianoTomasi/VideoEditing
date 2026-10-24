@@ -81,7 +81,20 @@ shell, so paths with spaces work.
   because which of its words stay cannot be told; missing or different words
   still are.
 - `ffprobe` checks the edit's duration against the one the cut list predicts.
-- `montaggio.srt` is written from the segments of the edit's transcript.
+- `montaggio.srt` is written from the segments of the edit's transcript, only
+  when the whole edit is checked.
+- Every check saves the edit map it checked in `controllo.json`. With
+  `--cambiate`, a join has changed when what the edit plays within 15 s of it,
+  as stretches of the recordings matched by path, matches no join of the saved
+  map; a join that only moved in the edit is unchanged. Without
+  `controllo.json`, `--cambiate` checks the whole edit.
+- Each changed join gets its own stretch of the edit, 15 s on each side, so it
+  sits in the middle of one of the transcriber's 30 s windows. The stretches
+  go into one 16 kHz mono `giunzioni.wav`, 30 s of silence apart so that no
+  window holds two of them, and the transcriber runs once. The heard words get
+  back their time in the edit. Each stretch is compared on its own with the
+  words the cut list keeps there, at the changed joins at least 5 s from its
+  cut edges, and a problem two stretches find is reported once.
 
 Most of these choices come from the research in
 [video-editing-repos-research.md](../../../sources/video-editing-repos-research.md).

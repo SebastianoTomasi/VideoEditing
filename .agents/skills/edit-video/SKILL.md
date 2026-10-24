@@ -38,7 +38,9 @@ conversation take precedence over this skill.
 `copione.md` when the video has a video script, `tagli.json` (the cut list),
 `tagli-<n>.json` (earlier cut lists), `trascrizione-compatta.md`,
 `silenzi.json`, `fotogrammi/`, `note.md`, `montaggio.mp4`, `montaggio.json`,
-`montaggio.srt`, and the edit's transcript.
+`montaggio.srt`, the edit's transcript, `controllo.json` (the edit at the last
+check), and `giunzioni.wav` with its transcript (the stretches the last
+`--cambiate` check transcribed).
 
 `tagli.json` lists the recordings in order and every stretch that changes;
 every stretch it does not list is kept:
@@ -120,15 +122,16 @@ it first; update it at each step.
 6. **Approval.** Wait for the user. Apply their changes, and the optional cuts
    they choose, to `tagli.json`.
 7. **Render and check.** Run `python scripts/monta.py <folder>`, which takes
-   about a minute. After the first render only, also run
-   `python scripts/controlla.py <folder>`, which transcribes the edit and takes
-   a few minutes. Run both in the background if you can. Report:
-   - the length of the edit;
-   - after a check, each potential problem with its time in the edit and what
-     it is.
+   about a minute, then check the edit. Run both in the background if you can.
+   - After the first render, and when the user asks for a full check, run
+     `python scripts/controlla.py <folder>`. It transcribes the whole edit and
+     takes a few minutes.
+   - After a correction, run `python scripts/controlla.py <folder> --cambiate`.
+     It transcribes only 30 s around each join that changed since the last
+     check and takes about a minute, mostly the transcriber starting up.
 
-   Fix nothing on your own. Each check makes the user wait, so check again
-   only when the user asks for it, and at the end as in **Done**.
+   Report the length of the edit and each potential problem with its time in
+   the edit and what it is. Fix nothing on your own.
 8. **Corrections.** The user quotes times of the edit. Map them to the
    recordings with `montaggio.json`, where each piece has its time in the edit
    (`out_start`, `out_end`), its time in its recording (`src_start`,
@@ -139,7 +142,7 @@ it first; update it at each step.
      user chooses.
    - "Torna alla versione di prima": restore the latest `tagli-<n>.json`.
 
-   Then go through step 7 again, without the check.
+   Then go through step 7 again.
 
 For feedback only ("dammi un feedback sul testo"), do steps 1 to 3 and give
 only the feedback: no table, no render.
@@ -162,12 +165,13 @@ only the feedback: no table, no render.
 
 The edit is final when the user says so. Then:
 
-1. If the edit changed since the last check, run `controlla.py` again and
-   report its potential problems. If the user then corrects the edit, go back
-   to step 8.
+1. If the edit changed since the last full check, run `controlla.py` without
+   `--cambiate` and report its potential problems: a `--cambiate` check does
+   not count, because it transcribes only stretches and writes no subtitles.
+   If the user then corrects the edit, go back to step 8.
 2. Correct `montaggio.srt` with the `fix-transcript` skill, installed with the
    transcriber, using `copione.md`, `note.md`, and the frame sheets as context.
-   A check rewrites `montaggio.srt`, so correct it after the last one.
+   A full check rewrites `montaggio.srt`, so correct it after the last one.
 3. Report:
    - chapters for the YouTube description, taken from the spoken signposts in
      the edit's transcript: the first at 00:00, at least three, each at least

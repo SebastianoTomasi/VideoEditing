@@ -52,9 +52,11 @@ ask for a shorter edit, or ask to go back to the previous version. For a
 shorter edit, the agent proposes further optional cuts and leaves the rest as
 it is. Each video has one cut list and one edit: a correction overwrites both,
 after the previous cut list is saved with a number; earlier edits are not
-kept. After a correction the edit is only rendered: the joins are checked
-again when the user asks, and when the user says the edit is final if it
-changed since the last check.
+kept. After a correction the edit is rendered and only the joins the
+correction added or changed are checked, so the user gets their potential
+problems without waiting for the whole edit to be transcribed. The whole edit
+is checked again when the user asks, and when the user says the edit is final
+if it changed since the last check of the whole edit.
 
 ## Cuts and pace
 
@@ -70,10 +72,11 @@ changed since the last check.
 ## What comes with the edit
 
 - The audio is normalized to −14 LUFS.
-- Subtitles (`.srt`) for upload to YouTube, taken from the transcript the last
-  check makes of the edit. The agent corrects what the transcriber misheard,
-  such as names and technical terms, leaves the spoken words otherwise as
-  they were said, and asks the user only about what it cannot make out.
+- Subtitles (`.srt`) for upload to YouTube, taken from the transcript that the
+  last check of the whole edit makes. The agent corrects what the transcriber
+  misheard, such as names and technical terms, leaves the spoken words
+  otherwise as they were said, and asks the user only about what it cannot
+  make out.
 - Chapters for the YouTube description, with timestamps of the edit, proposed
   by the agent.
 - If the user pressed the OBS marker key while recording, the agent uses the

@@ -22,6 +22,8 @@ SILENCE_CACHE = "silenzi.json"
 EDIT = "montaggio.mp4"
 EDIT_MAP = "montaggio.json"
 SUBTITLES = "montaggio.srt"
+CHECK_RECORD = "controllo.json"
+EXCERPTS = "giunzioni.wav"
 
 SILENCE_NOISE_DB = -35
 SILENCE_MIN_SEC = 0.3

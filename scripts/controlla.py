@@ -1,11 +1,14 @@
 """Check an edit at its joins and write its subtitles.
 
-    python scripts/controlla.py <video folder>
+    python scripts/controlla.py <video folder>              check the whole edit
+    python scripts/controlla.py <video folder> --cambiate   only the joins changed since the last check
 
 Has the transcriber transcribe montaggio.mp4, compares the words heard near
 each join with the words the cut list keeps there, reports the potential
 problems with their time in the edit, checks the duration, and writes
-montaggio.srt. It fixes nothing.
+montaggio.srt. With --cambiate it transcribes only the stretches of the edit
+around the joins that changed since the last check, recorded in
+controllo.json, and leaves montaggio.srt as it is. It fixes nothing.
 """
 
 from __future__ import annotations
@@ -20,8 +23,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from comune import (  # noqa: E402
+    CHECK_RECORD,
     EDIT,
     EDIT_MAP,
+    EXCERPTS,
     SUBTITLES,
     Interval,
     Segment,
@@ -32,6 +37,7 @@ from comune import (  # noqa: E402
     load_silences,
     main_wrapper,
     probe,
+    run,
     timeline_from_json,
     transcribe,
     transcript_path,
@@ -42,8 +48,16 @@ JOIN_WINDOW_SEC = 3.0
 CONTEXT_WORDS = 4
 DURATION_TOLERANCE_SEC = 0.5
 SUBTITLE_LINE_CHARS = 42
+# --cambiate transcribes 15 s of the edit on each side of a changed join, so the
+# join sits in the middle of one of the transcriber's 30 s windows; 30 s of
+# silence between two stretches keeps them out of each other's window.
+EXCERPT_SEC = 15.0
+EXCERPT_GAP_SEC = 30.0
+EXCERPT_EDGE_SEC = 5.0  # a stretch is compared only at joins this far from its cut edges
+SAME_SEC = 0.01
 
 Word = tuple[str, float]  # a word and its approximate time in the edit
+Stretch = tuple[Path, float, float, float, bool]  # recording, from, to, speed, silent
 
 
 @dataclass(frozen=True)
@@ -178,6 +192,108 @@ def compare(
     return problems
 
 
+def surroundings(timeline: Timeline, recordings: list[Path], t: float) -> list[Stretch]:
+    """What the edit plays within EXCERPT_SEC of t, as stretches of its recordings."""
+    low, high = t - EXCERPT_SEC, t + EXCERPT_SEC
+    result = []
+    for piece in timeline.pieces:
+        start, end = max(low, piece.out_start), min(high, piece.out_end)
+        if end - start < SAME_SEC:
+            continue
+        src_start = piece.src_start + (start - piece.out_start) * piece.speed
+        src_end = piece.src_start + (end - piece.out_start) * piece.speed
+        result.append((recordings[piece.recording], src_start, src_end, piece.speed, piece.silent))
+    return result
+
+
+def _same(one: list[Stretch], other: list[Stretch]) -> bool:
+    return len(one) == len(other) and all(
+        a[0] == b[0] and a[4] == b[4] and all(abs(x - y) < SAME_SEC for x, y in zip(a[1:4], b[1:4]))
+        for a, b in zip(one, other)
+    )
+
+
+def changed_joins(
+    previous: Timeline, previous_recordings: list[Path], current: Timeline, current_recordings: list[Path]
+) -> list[float]:
+    """Joins of the current edit whose surroundings no join of the previous edit had.
+
+    Recordings are matched by path, so adding a recording keeps the joins of
+    the others; a join that only moved in the edit is not changed.
+    """
+    before = [surroundings(previous, previous_recordings, j) for j in previous.joins]
+    return [
+        j for j in current.joins
+        if not any(_same(surroundings(current, current_recordings, j), other) for other in before)
+    ]
+
+
+def excerpts(joins: list[float], duration: float) -> list[Interval]:
+    """The stretch of the edit within EXCERPT_SEC of each join, even where they overlap."""
+    return [(max(0.0, j - EXCERPT_SEC), min(duration, j + EXCERPT_SEC)) for j in joins]
+
+
+def compare_excerpts(
+    expected: list[Word],
+    heard: list[list[Word]],
+    joins: list[float],
+    straddling: list[tuple[float, set[str]]],
+    duration: float,
+) -> list[Problem]:
+    """The problems at the joins, each stretch of excerpts(joins) compared on its own.
+
+    A stretch is compared at its own join and at the others well inside it; a
+    problem two stretches find is reported once.
+    """
+    problems: list[Problem] = []
+    seen = set()
+    for own, (start, end), stretch_heard in zip(joins, excerpts(joins, duration), heard):
+        inside = [j for j in joins if abs(j - own) <= EXCERPT_SEC - EXCERPT_EDGE_SEC]
+        kept = [w for w in expected if start <= w[1] <= end]
+        for problem in compare(kept, stretch_heard, inside, straddling):
+            key = (problem.join, problem.kind, problem.expected, problem.heard)
+            if key not in seen:
+                seen.add(key)
+                problems.append(problem)
+    return problems
+
+
+def write_excerpts(edit: Path, stretches: list[Interval], output: Path) -> None:
+    """Write the stretches of the edit's audio into one file, EXCERPT_GAP_SEC of silence apart."""
+    mono = "aformat=sample_fmts=s16:sample_rates=16000:channel_layouts=mono"
+    chains, labels = [], []
+    for k, (start, end) in enumerate(stretches):
+        if k:
+            chains.append(f"anullsrc=r=16000:cl=mono,atrim=duration={EXCERPT_GAP_SEC},{mono}[g{k}]")
+            labels.append(f"[g{k}]")
+        chains.append(
+            f"[0:a:0]atrim=start={start:.3f}:end={end:.3f},asetpts=PTS-STARTPTS,aresample=16000,{mono}[e{k}]"
+        )
+        labels.append(f"[e{k}]")
+    chains.append(f"{''.join(labels)}concat=n={len(labels)}:v=0:a=1[out]")
+    result = run(["ffmpeg", "-hide_banner", "-y", "-loglevel", "error", "-i", str(edit),
+                  "-filter_complex", ";".join(chains), "-map", "[out]", "-c:a", "pcm_s16le", str(output)])
+    if result.returncode != 0:
+        raise UserError(f"non riesco a estrarre i tratti del montaggio: {result.stderr[-500:]}")
+
+
+def heard_in_excerpts(segments: list[Segment], stretches: list[Interval]) -> list[list[Word]]:
+    """The words heard in the file of write_excerpts, by stretch, with their time in the edit.
+
+    A word heard in the silence between two stretches goes to the nearer one.
+    """
+    offsets, cursor = [], 0.0
+    for start, end in stretches:
+        offsets.append(cursor)
+        cursor += end - start + EXCERPT_GAP_SEC
+    result: list[list[Word]] = [[] for _ in stretches]
+    for word, t in heard_words(segments):
+        k = max((i for i, offset in enumerate(offsets) if offset - EXCERPT_GAP_SEC / 2 <= t), default=0)
+        start, end = stretches[k]
+        result[k].append((word, min(max(start + t - offsets[k], start), end)))
+    return result
+
+
 def _timestamp(seconds: float) -> str:
     millis = int(round(max(seconds, 0.0) * 1000))
     hours, rest = divmod(millis, 3_600_000)
@@ -223,27 +339,50 @@ def subtitles(segments: list[Segment]) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Controlla il montaggio alle giunzioni.")
     parser.add_argument("cartella", type=Path, help="cartella del video")
-    folder = parser.parse_args().cartella.resolve()
+    parser.add_argument("--cambiate", action="store_true",
+                        help="controlla solo le giunzioni cambiate dall'ultimo controllo")
+    args = parser.parse_args()
+    folder = args.cartella.resolve()
 
-    edit, edit_map = folder / EDIT, folder / EDIT_MAP
+    edit, edit_map, record = folder / EDIT, folder / EDIT_MAP, folder / CHECK_RECORD
     if not edit.exists() or not edit_map.exists():
         raise UserError(f"in {folder} mancano {EDIT} o {EDIT_MAP}: lancia prima monta.py")
     data = json.loads(edit_map.read_text(encoding="utf-8"))
     timeline = timeline_from_json(data)
     recordings = [Path(p) for p in data["recordings"]]
-
-    edit_transcript = transcript_path(edit)
-    if not edit_transcript.exists() or edit_transcript.stat().st_mtime < edit.stat().st_mtime:
-        print("Trascrivo il montaggio…", file=sys.stderr)
-        transcribe(edit, folder)
-    heard = heard_words(load_segments(edit_transcript))
     silences = load_silences(folder, recordings, [probe(p).duration for p in recordings])
     segments = [load_segments(transcript_path(p)) for p in recordings]
     expected = expected_words(timeline, segments, silences)
-    problems = compare(expected, heard, timeline.joins, straddling_words(timeline, segments))
+    straddling = straddling_words(timeline, segments)
+
+    targeted = args.cambiate and record.exists()
+    if args.cambiate and not targeted:
+        print("Nessun controllo precedente: controllo tutto il montaggio.", file=sys.stderr)
+    if targeted:
+        previous = json.loads(record.read_text(encoding="utf-8"))
+        joins = changed_joins(timeline_from_json(previous), [Path(p) for p in previous["recordings"]],
+                              timeline, recordings)
+        problems = []
+        if joins:
+            stretches = excerpts(joins, timeline.duration)
+            audio = folder / EXCERPTS
+            write_excerpts(edit, stretches, audio)
+            print(f"Trascrivo {fmt(sum(end - start for start, end in stretches))} del montaggio…",
+                  file=sys.stderr)
+            transcribe(audio, folder)
+            heard = heard_in_excerpts(load_segments(transcript_path(audio)), stretches)
+            problems = compare_excerpts(expected, heard, joins, straddling, timeline.duration)
+        checked = f"{len(joins)} giunzioni cambiate dall'ultimo controllo, su {len(timeline.joins)}"
+    else:
+        edit_transcript = transcript_path(edit)
+        if not edit_transcript.exists() or edit_transcript.stat().st_mtime < edit.stat().st_mtime:
+            print("Trascrivo il montaggio…", file=sys.stderr)
+            transcribe(edit, folder)
+        problems = compare(expected, heard_words(load_segments(edit_transcript)), timeline.joins, straddling)
+        checked = f"{len(timeline.joins)} giunzioni controllate"
 
     actual = probe(edit).duration
-    print(f"Montaggio: {fmt(actual)}, {len(timeline.joins)} giunzioni controllate.")
+    print(f"Montaggio: {fmt(actual)}, {checked}.")
     if abs(actual - timeline.duration) > DURATION_TOLERANCE_SEC:
         print(f"Avviso: la durata attesa era {fmt(timeline.duration)}.")
     if problems:
@@ -258,8 +397,12 @@ def main() -> None:
     else:
         print("Nessun problema trovato alle giunzioni.")
 
-    (folder / SUBTITLES).write_text(subtitles(load_segments(edit_transcript)), encoding="utf-8")
-    print(f"Sottotitoli: {folder / SUBTITLES}")
+    if targeted:
+        print(f"Sottotitoli non riscritti: {SUBTITLES} lo riscrive il controllo completo.")
+    else:
+        (folder / SUBTITLES).write_text(subtitles(load_segments(edit_transcript)), encoding="utf-8")
+        print(f"Sottotitoli: {folder / SUBTITLES}")
+    record.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
 
 
 if __name__ == "__main__":

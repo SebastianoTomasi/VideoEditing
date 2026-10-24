@@ -41,7 +41,8 @@ images; YouTube, where the user publishes by hand.
 The system uses the transcriber only through its launcher commands and the JSON
 transcript they write, never through its Docker image or its intermediate
 files. It uses it twice: to transcribe each recording that has no transcript
-yet, and to transcribe each edit so that its joins can be checked. Transcripts
+yet, and to transcribe each edit, or after a correction only the stretches of
+it around the joins that changed, so that its joins can be checked. Transcripts
 stay where the transcriber writes them, beside the recording or the edit.
 
 Cut points come from the sentence segments that

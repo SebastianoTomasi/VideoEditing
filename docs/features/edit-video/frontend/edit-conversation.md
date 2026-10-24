@@ -55,14 +55,15 @@ gives only the feedback on the spoken text.
    ("rimetti la frase a 3:20"), asks for a shorter edit, or asks to go back to
    the previous version. For a shorter edit, the agent first proposes further
    optional cuts and waits for the user's choice. Then it updates the cut list,
-   renders, and gives the new length; it checks the joins only when the user
-   asks.
+   renders, checks the joins the correction added or changed, and gives the new
+   length and the potential problems found there; it checks the whole edit only
+   when the user asks.
 7. **Final edit.** When the user says the edit is final, the agent checks the
-   joins once more if the edit changed since the last check, corrects the
-   subtitles, and proposes the chapters for the YouTube description. It says
-   how many subtitle corrections it made and which points it could not make
-   out, each with its timestamp in the edit; the subtitles are in the video's
-   folder.
+   whole edit once more if it changed since the last check of the whole edit,
+   corrects the subtitles, and proposes the chapters for the YouTube
+   description. It says how many subtitle corrections it made and which points
+   it could not make out, each with its timestamp in the edit; the subtitles
+   are in the video's folder.
 
 ## Waiting and empty states
 

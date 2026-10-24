@@ -6,8 +6,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from comune import Piece, Segment, Timeline  # noqa: E402
 from controlla import (  # noqa: E402
+    EXCERPT_GAP_SEC,
+    changed_joins,
     compare,
+    compare_excerpts,
+    excerpts,
     expected_words,
+    heard_in_excerpts,
     heard_words,
     spread,
     straddling_words,
@@ -17,6 +22,80 @@ from controlla import (  # noqa: E402
 
 def words_at(text: str, start: float, step: float = 0.5):
     return [(w, start + k * step) for k, w in enumerate(text.split())]
+
+
+def edit_of(*stretches):
+    """A timeline playing (recording, from, to) stretches one after the other, with a join between each."""
+    pieces, out = [], 0.0
+    for recording, start, end in stretches:
+        pieces.append(Piece(recording, start, end, 1.0, False, out, out + end - start))
+        out += end - start
+    return Timeline(pieces, [p.out_start for p in pieces[1:]], [], [])
+
+
+class ChangedJoinsTests(unittest.TestCase):
+    one = [Path("a.mp4")]
+
+    def test_an_unchanged_edit_has_no_changed_joins(self):
+        edit = edit_of((0, 0.0, 100.0), (0, 120.0, 200.0), (0, 230.0, 300.0))
+        self.assertEqual(changed_joins(edit, self.one, edit, self.one), [])
+
+    def test_a_new_cut_changes_only_its_own_join(self):
+        before = edit_of((0, 0.0, 100.0), (0, 120.0, 300.0))
+        after = edit_of((0, 0.0, 100.0), (0, 120.0, 200.0), (0, 230.0, 300.0))
+        self.assertEqual(changed_joins(before, self.one, after, self.one), [180.0])
+
+    def test_a_join_that_only_moved_in_the_edit_is_not_changed(self):
+        before = edit_of((0, 0.0, 100.0), (0, 120.0, 300.0))
+        after = edit_of((0, 0.0, 40.0), (0, 60.0, 100.0), (0, 120.0, 300.0))
+        self.assertEqual(changed_joins(before, self.one, after, self.one), [40.0])
+
+    def test_a_join_with_a_change_close_by_is_changed(self):
+        before = edit_of((0, 0.0, 100.0), (0, 120.0, 300.0))
+        after = edit_of((0, 0.0, 100.0), (0, 120.0, 125.0), (0, 130.0, 300.0))
+        self.assertEqual(changed_joins(before, self.one, after, self.one), [100.0, 105.0])
+
+    def test_recordings_are_matched_by_path_not_by_index(self):
+        before = edit_of((0, 0.0, 100.0), (0, 120.0, 300.0))
+        after = edit_of((0, 0.0, 50.0), (1, 0.0, 100.0), (1, 120.0, 300.0))
+        self.assertEqual(changed_joins(before, self.one, after, [Path("intro.mp4"), Path("a.mp4")]), [50.0])
+
+
+class ExcerptsTests(unittest.TestCase):
+    def test_each_join_gets_its_own_stretch_inside_the_edit(self):
+        self.assertEqual(excerpts([10.0, 30.0, 100.0], duration=110.0), [(0.0, 25.0), (15.0, 45.0), (85.0, 110.0)])
+
+
+class HeardInExcerptsTests(unittest.TestCase):
+    # The stretches 0-25 and 85-110 of the edit sit at 0-25 and 25+gap onwards in the excerpts file.
+    stretches = [(0.0, 25.0), (85.0, 110.0)]
+    second = 25.0 + EXCERPT_GAP_SEC
+
+    def test_words_get_back_their_time_in_the_edit(self):
+        segments = [Segment(10.0, 12.0, "uno due"), Segment(self.second + 3.0, self.second + 5.0, "tre quattro")]
+        self.assertEqual(heard_in_excerpts(segments, self.stretches),
+                         [[("uno", 10.5), ("due", 11.5)], [("tre", 88.5), ("quattro", 89.5)]])
+
+    def test_a_word_heard_in_the_silence_between_goes_to_the_nearer_stretch(self):
+        middle = 25.0 + EXCERPT_GAP_SEC / 2
+        segments = [Segment(middle - 1.0, middle - 0.5, "eh"), Segment(middle + 0.5, middle + 1.0, "ah")]
+        self.assertEqual(heard_in_excerpts(segments, self.stretches), [[("eh", 25.0)], [("ah", 85.0)]])
+
+
+class CompareExcerptsTests(unittest.TestCase):
+    def test_a_problem_between_two_close_joins_is_reported_once(self):
+        expected = words_at("ecco il primo passo apriamo il file e vediamo il risultato finale", 98.0)
+        heard_text = "ecco il primo passo apriamo il e vediamo il risultato finale"
+        joins = [100.0, 102.0]
+        heard = [words_at(heard_text, 98.0), words_at(heard_text, 98.0)]
+        problems = compare_excerpts(expected, heard, joins, [], duration=200.0)
+        self.assertEqual([(p.join, p.kind, p.expected) for p in problems], [(100.0, "manca", "file")])
+
+    def test_a_stretch_is_not_compared_at_a_join_near_its_cut_edge(self):
+        # The stretch of the join at 100 ends at 115, cutting the speech around the join at 114.
+        expected = words_at("ecco il primo passo apriamo il file", 111.0)
+        heard = [words_at("ecco il primo passo", 111.0), words_at("ecco il primo passo apriamo il file", 111.0)]
+        self.assertEqual(compare_excerpts(expected, heard, [100.0, 114.0], [], duration=200.0), [])
 
 
 class StraddlingWordsTests(unittest.TestCase):

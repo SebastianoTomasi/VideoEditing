@@ -42,7 +42,9 @@ instructions live) are in the
   edit.
 - **`controlla.py`:** has the transcriber transcribe the edit, compares the
   text at each join with the cut list, reports the potential problems, and
-  writes the subtitles.
+  writes the subtitles. After a correction it checks only the joins that
+  changed since the last check: the transcriber transcribes only the
+  stretches of the edit around them, and the subtitles stay as they are.
 
 The scripts depend only on ffmpeg, ffprobe, the transcriber's launcher, and
 the files in the video's folder. They never call one another or the agent;
@@ -62,7 +64,9 @@ the agent runs them.
 | `montaggio.mp4`, the edit | `monta.py` | `controlla.py`, the user |
 | `montaggio.json`, the pieces of the edit with their times in the edit and in the recordings | `monta.py` | `controlla.py`, the agent, to map the user's corrections |
 | the edit's transcript | the transcriber | `controlla.py` |
-| `montaggio.srt`, the subtitles | `controlla.py`, then the agent corrects what the transcriber misheard | the user |
+| `controllo.json`, the pieces of the edit at the last check | `controlla.py` | `controlla.py`, to find the joins that changed |
+| `giunzioni.wav`, the stretches of the edit around the joins that changed, and its transcript | `controlla.py`, then the transcriber | the transcriber, then `controlla.py` |
+| `montaggio.srt`, the subtitles | `controlla.py` when it checks the whole edit, then the agent corrects what the transcriber misheard | the user |
 
 The cut list names the recordings in order, by path, and lists each stretch
 that changes: its from–to in the recording's time, whether it is cut or sped
@@ -83,3 +87,5 @@ kept.
   that the transcriber must be updated.
 - When the transcriber is busy, a script waits and retries instead of starting
   a second transcription.
+- `controlla.py` writes the subtitles only from a transcript of the whole
+  edit.
