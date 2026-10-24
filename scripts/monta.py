@@ -118,8 +118,10 @@ def measure_loudness(inputs: list[str], graph_path: Path, timeline, infos) -> st
 
 def render(folder: Path, inputs: list[str], graph_path: Path, output: Path) -> str:
     """Encode with NVENC, or with libx264 when NVENC is not available."""
+    # OBS markers become chapters timed on the recording, so a player would show
+    # the recording's length instead of the edit's.
     common = ["-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
-              "-movflags", "+faststart"]
+              "-map_chapters", "-1", "-movflags", "+faststart"]
     for name, codec in (("h264_nvenc", NVENC), ("libx264", X264)):
         result = run(["ffmpeg", "-hide_banner", "-y", "-loglevel", "error", *inputs,
                       "-/filter_complex", str(graph_path), "-map", "[vout]", "-map", "[aout]",
