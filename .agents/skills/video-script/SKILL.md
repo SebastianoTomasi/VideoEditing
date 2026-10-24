@@ -28,14 +28,15 @@ uses the same folder. The script holds:
 - **The title line, the target length and the promise in one sentence.** The
   length is for planning only: the edit does not enforce it.
 - **"Prima di registrare":**
-  - OBS at 1920×1080, recording in Hybrid MP4 with the marker key assigned;
+  - OBS at 1920×1080, recording in Hybrid MP4 with the marker key assigned
+    (the user's is Ctrl + <, bound to OBS "Add chapter marker");
   - the app sidebar closed, and text enlarged (Ctrl +) in every app shown;
   - the webcam placed where it covers nothing important;
   - the windows and the repository ready;
   - nothing private on screen: other sessions, email, keys, client data.
 - **"Durante la ripresa":** the rules that make the edit reliable.
-  - After a mistake, stop, press the marker key, pause two seconds, and say the
-    whole sentence again.
+  - After a mistake, stop, press the marker key (Ctrl + <), pause two seconds,
+    and say the whole sentence again.
   - Stay silent while the AI works: the edit speeds up those waits.
   - The recording may stop between scenes.
 - **The scenes, numbered.** For each scene:
