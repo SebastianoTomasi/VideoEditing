@@ -47,16 +47,22 @@ gives only the feedback on the spoken text.
    optional cut that fixes it or given as advice for the next recording.
 4. **Approval.** The user approves, possibly with changes, and asks for any
    optional cuts they want. Nothing is rendered before.
-5. **Report.** After rendering and checking, the agent gives the edit's length,
-   lists the potential problems found at the joins, each with its timestamp in
-   the edit, and proposes the chapters for the YouTube description; the
-   subtitles are in the video's folder. It changes nothing on its own: the user
+5. **Report.** After the first render and its check, the agent gives the
+   edit's length and lists the potential problems found at the joins, each
+   with its timestamp in the edit. It changes nothing on its own: the user
    listens where needed and says how to fix it.
 6. **Corrections.** The user asks for changes by quoting timestamps of the edit
    ("rimetti la frase a 3:20"), asks for a shorter edit, or asks to go back to
    the previous version. For a shorter edit, the agent first proposes further
    optional cuts and waits for the user's choice. Then it updates the cut list,
-   renders, checks, and reports again.
+   renders, and gives the new length; it checks the joins only when the user
+   asks.
+7. **Final edit.** When the user says the edit is final, the agent checks the
+   joins once more if the edit changed since the last check, corrects the
+   subtitles, and proposes the chapters for the YouTube description. It says
+   how many subtitle corrections it made and which points it could not make
+   out, each with its timestamp in the edit; the subtitles are in the video's
+   folder.
 
 ## Waiting and empty states
 

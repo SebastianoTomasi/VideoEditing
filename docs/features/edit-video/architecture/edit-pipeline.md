@@ -62,7 +62,7 @@ the agent runs them.
 | `montaggio.mp4`, the edit | `monta.py` | `controlla.py`, the user |
 | `montaggio.json`, the pieces of the edit with their times in the edit and in the recordings | `monta.py` | `controlla.py`, the agent, to map the user's corrections |
 | the edit's transcript | the transcriber | `controlla.py` |
-| `montaggio.srt`, the subtitles | `controlla.py` | the user |
+| `montaggio.srt`, the subtitles | `controlla.py`, then the agent corrects what the transcriber misheard | the user |
 
 The cut list names the recordings in order, by path, and lists each stretch
 that changes: its from–to in the recording's time, whether it is cut or sped
