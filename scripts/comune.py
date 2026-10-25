@@ -36,7 +36,7 @@ MARGIN_MAX_SEC = 0.2
 
 TRANSCRIBER = Path(
     os.environ.get(
-        "TRASCRITTORE", r"C:\Users\sebas\Desktop\Trascrittore\trascrittore.ps1"
+        "TRASCRITTORE", Path.home() / "Desktop" / "Trascrittore" / "trascrittore.ps1"
     )
 )
 
@@ -318,7 +318,10 @@ def transcribe(media: Path, out_dir: Path, wait_limit_sec: float = 3600) -> dict
     try again instead of starting a second one.
     """
     if not TRANSCRIBER.exists():
-        raise UserError(f"non trovo il trascrittore in {TRANSCRIBER}")
+        raise UserError(
+            f"non trovo il trascrittore in {TRANSCRIBER}: imposta TRASCRITTORE "
+            "con il percorso di trascrittore.ps1, che si legge nella skill trascrittore"
+        )
     args = [
         "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(TRANSCRIBER),
         "transcribe", str(media), "--speakers", "1", "--out-dir", str(out_dir),

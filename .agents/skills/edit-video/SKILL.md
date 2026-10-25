@@ -57,7 +57,7 @@ every stretch it does not list is kept:
 
 ```json
 {
-  "recordings": ["C:/Users/sebas/Documents/Code/Passion/VideoEditing/videos/2026-10-10-presentazione-advisor/2026-10-10 21-48-35.mp4"],
+  "recordings": ["C:/path/to/VideoEditing/videos/2026-10-10-presentazione-advisor/2026-10-10 21-48-35.mp4"],
   "changes": [
     {"recording": 0, "start": 0.0, "end": 20.9, "action": "cut", "reason": "ripartenza", "text": "Buon salve a tutti…"},
     {"recording": 0, "start": 266.9, "end": 290.55, "action": "speed", "reason": "attesa", "text": ""}
@@ -75,8 +75,10 @@ it first; update it at each step.
 
 ## Steps
 
-1. **Recordings.** Look in `C:\Users\sebas\Videos\OBS` for the recordings the
-   user means, using the date and time in the file names and skipping files
+1. **Recordings.** Look in the OBS folder for the recordings the user means:
+   the folder in the `OBS_REGISTRAZIONI` environment variable, or else
+   `%USERPROFILE%\Videos\OBS`; if neither exists, ask the user where OBS saves
+   recordings. Use the date and time in the file names, skipping files
    ending in "- montaggio" or "- trascrizione". A recording already moved for
    another video, as when the user has a video edited again from scratch, is
    in that video's folder: propose it from there. Propose them in recording
@@ -92,8 +94,9 @@ it first; update it at each step.
    player, report what it says and wait for the user.
 2. **Transcripts.** For each recording without `<name> - trascrizione.json`
    beside it, run the transcriber in the background and tell the user. One
-   transcription at a time. The command, also in the `trascrittore` skill:
-   `powershell -NoProfile -ExecutionPolicy Bypass -File "C:\Users\sebas\Desktop\Trascrittore\trascrittore.ps1" transcribe "<recording>" --speakers 1`.
+   transcription at a time. Take the launcher's command from the
+   `trascrittore` skill, which the transcriber installs with its path on this
+   PC, and run `transcribe "<recording>" --speakers 1` with it.
 3. **Read.** Run `python scripts/prepara.py <folder>` and read
    `trascrizione-compatta.md`. If the script says the transcript has no
    sentence segments, stop and tell the user that the transcriber must be
@@ -170,6 +173,11 @@ only the feedback: no table, no render.
 
 - **No sentence segments:** stop, as in step 3.
 - **The transcriber is busy:** the scripts wait for it; tell the user.
+- **The `trascrittore` skill is missing:** tell the user to install the
+  transcriber, [SebastianoTomasi/trascrittore](https://github.com/SebastianoTomasi/trascrittore).
+- **A script cannot find the transcriber:** set `TRASCRITTORE` to the
+  launcher's path from the `trascrittore` skill for that command, and tell the
+  user to set it permanently.
 - **`monta.py` refuses a cut that has no silence:** move that edge to a nearby
   measured silence, or ask the user.
 - **A render fails:** the previous edit stays untouched; report the error as

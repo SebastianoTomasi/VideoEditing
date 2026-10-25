@@ -13,8 +13,9 @@ scripts belongs to Implementation.
 ## Dependencies
 
 - [Primary user](../product/product-foundation.md#primary-user) — the system
-  runs only on this PC, driven by a coding agent opened in this repository, so
-  the repository is the workspace.
+  runs on the user's own PC, driven by a coding agent opened in this
+  repository, so the repository is the workspace; other people may use it, so
+  nothing relies on the author's own paths.
 - [Compatibility baseline](../product/product-foundation.md#compatibility-baseline)
   — original recordings are never modified, so the system only reads them; it
   moves them only into their video's folder and deletes them only when the
@@ -47,6 +48,11 @@ it around the joins that changed, so that its joins can be checked. Transcripts
 stay where the transcriber writes them, beside the recording or the edit, and
 move with the recording.
 
+The agent takes the launcher's command from the `trascrittore` skill, which
+the transcriber's installer writes with the launcher's path on that PC. The
+scripts find the launcher through the `TRASCRITTORE` environment variable, by
+default `%USERPROFILE%\Desktop\Trascrittore\trascrittore.ps1`.
+
 Cut points come from the sentence segments that
 [SebastianoTomasi/trascrittore#2](https://github.com/SebastianoTomasi/trascrittore/issues/2)
 adds to that JSON. A transcript without segments stops the editing: the agent
@@ -78,7 +84,10 @@ its notes, its edit, and its thumbnails. The folder is created by the first of
 these to exist: the video script when there is one, otherwise the recordings.
 Video folders are kept out of git: nothing about a video is ever committed.
 
-OBS writes recordings into `C:\Users\sebas\Videos\OBS`. Once the user confirms
+OBS writes recordings into the user's OBS folder: the folder named by the
+`OBS_REGISTRAZIONI` environment variable, or else `%USERPROFILE%\Videos\OBS`.
+When neither exists, the agent asks the user where OBS saves recordings.
+Once the user confirms
 which recordings make up a video, they move into the video's folder with their
 OBS names and their transcripts, and the cut list refers to them by path. A
 recording already in another video's folder, as when a video is edited again

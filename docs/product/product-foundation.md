@@ -45,11 +45,15 @@ from research in `docs/sources/`, and the user can change it at any time.
 
 ## Primary user
 
-The only user is the project's author, on this PC, asking a coding agent
-(Claude Code, possibly Codex) opened in this repository. The system may assume
-that ffmpeg, Docker with GPU access, the local transcriber, Edge, and Codex
-are installed, and that the user can read a table of timestamps. It has no graphical
-interface, no installer, and no support for anyone else's machine.
+The user records Italian screencasts with OBS and asks a coding agent (Claude
+Code or Codex) opened in this repository to edit them, on their own Windows PC.
+The project's author is the first user; anyone with the same setup may use the
+repository as it is, without support
+([ADR 0002](../adr/0002-other-people-may-use-the-repository.md)). The system
+may assume that ffmpeg, Docker with GPU access, the local transcriber, Edge,
+and Codex are installed, and that the user can read a table of timestamps. It
+has no graphical interface and no installer. Throughout the documentation,
+"this PC" is the PC of the user running the system.
 
 ## Recordings handled
 
@@ -116,8 +120,8 @@ The system promises the user that:
 
 These are outside the product for now; each would need a new decision:
 
-- a version for other people or other machines, including a graphical
-  interface or an installer;
+- a graphical interface, an installer, support for other users, or setups
+  other than the one in [Primary user](#primary-user);
 - recordings with several voices (meetings, interviews), phone footage, and
   languages other than Italian;
 - vertical videos and shorts, kept for later in
@@ -136,6 +140,6 @@ The product works when, checked from outside:
 3. from asking for an edit to having it, the user's own work (reading the
    proposal, listening to the reported points, approving) stays under 10
    minutes;
-4. rendering and checking an 18-minute recording take under 3 minutes on this
-   PC;
+4. rendering and checking an 18-minute recording take under 3 minutes on the
+   author's PC;
 5. nothing about the videos, and not the reference photo, is in git.

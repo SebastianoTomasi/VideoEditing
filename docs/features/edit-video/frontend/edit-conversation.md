@@ -30,8 +30,9 @@ gives only the feedback on the spoken text.
 
 ## Steps
 
-1. **Recordings.** The agent looks in `C:\Users\sebas\Videos\OBS` and proposes
-   which recordings make up the video, in order of recording time, and the
+1. **Recordings.** The agent looks in the folder where OBS saves recordings
+   and proposes which recordings make up the video, in order of recording
+   time, and the
    name of its folder, for example `videos/2026-10-10-presentazione-advisor/`;
    if the video already has a folder from its video script, it proposes that
    one. A recording already moved for another video is proposed from that
