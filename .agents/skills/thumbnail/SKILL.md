@@ -62,9 +62,15 @@ chooses and uploads.
      go.
    - In Claude Code, run
      `python scripts/miniature.py genera <folder> --prompt <file> --nome B --immagine canale/foto.png`,
-     adding `--immagine <frame>` for each frame you send. In Codex, use
-     `$imagegen` directly and save the result into `<folder>/immagini/`.
-   - If `codex.exe` is missing, ask the user to do this step in Codex.
+     adding `--immagine <frame>` for each frame you send. If `codex.exe` is
+     missing, ask the user to do this step in Codex.
+   - In Codex, the built-in generation takes no file paths: first open
+     `canale/foto.png` and each frame you send with `view_image`, then use
+     `$imagegen` with the prompt, saying which attached image is the reference
+     for the face. Codex saves the picture under
+     `$CODEX_HOME/generated_images/`, by default `~/.codex/generated_images/`:
+     copy it into `<folder>/immagini/` named as `genera` names its copies,
+     `<name>-<n>`, for example `immagini/B-1.png`.
 4. **Layouts.** Copy the template into `<folder>/miniatura-A.html`, `-B.html`
    and `-C.html`. For each, set `data-layout`, fill the slots with images by
    paths relative to the folder, and remove the slots the layout does not use.

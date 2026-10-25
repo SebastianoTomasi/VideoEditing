@@ -29,7 +29,10 @@ like is in the playbook; what the feature promises is in its
   approved channel template is a copy of it in `canale/modello/`.
 - **`miniature.py genera`:** runs `codex exec` with the agent's prompt and the
   attached images, and copies the pictures Codex saves into the video's
-  folder. In Codex the agent uses `$imagegen` directly instead.
+  folder. In Codex the agent uses `$imagegen` directly instead: it first opens
+  the reference photo and the frames with `view_image`, because the built-in
+  generation takes no file paths, then copies the pictures Codex saves into
+  the video's folder under the same names.
 - **`miniature.py render`:** turns each layout into a 3840×2160 JPEG with Edge
   in headless mode.
 - **`miniature.py anteprima`:** a sheet with each thumbnail at 168×94, 320×180
@@ -39,7 +42,7 @@ like is in the playbook; what the feature promises is in its
 
 | File | Written by | Read by |
 |---|---|---|
-| `canale/foto.png`, the reference photo | the user, copied once | `miniature.py genera` |
+| `canale/foto.png`, the reference photo | the user, copied once | `miniature.py genera`, or the agent in Codex |
 | `canale/font/titolo.ttf`, the heading font | the user | the layouts |
 | `canale/modello/miniatura.html`, the approved template | the agent, once approved | the agent |
 | `<video>/fotogrammi/miniature/`, candidate sheets | `fotogrammi.py` | the agent |
@@ -54,6 +57,6 @@ like is in the playbook; what the feature promises is in its
   reach Codex; the layouts and their text are rendered on this PC.
 - Layouts load fonts and pictures by relative path only, so rendering makes no
   network request.
-- Without `codex.exe`, `genera` stops and the agent asks the user to run that
-  step in Codex; layouts and rendering still work.
+- In Claude Code without `codex.exe`, `genera` stops and the agent asks the
+  user to run that step in Codex; layouts and rendering still work.
 - Without Edge, `render` stops and says so.
