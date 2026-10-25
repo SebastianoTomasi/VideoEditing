@@ -89,10 +89,12 @@ chooses and uploads.
    in this order: the video `montaggio.mp4`, the subtitles `montaggio.srt`,
    the title, the description, the chosen thumbnail's JPEG, and the tags.
    Link the files, the description's `descrizione.txt` included: the user
-   copies long text from the file. Put the title and the line of `tag.txt`
-   each in its own code block, so each is copied in one gesture. End with
-   whatever `note.md` still leaves open before publishing,
-   such as a link that does not open for anyone.
+   copies long text from the file. Under the links to the video, the
+   subtitles, and the thumbnail, give each file's absolute path too, to paste
+   into YouTube's file picker. Put these paths, the title, and the line of
+   `tag.txt` each in its own code block, so each is copied in one gesture.
+   End with whatever `note.md` still leaves open before publishing, such as a
+   link that does not open for anyone.
 
 ## The channel template
 
