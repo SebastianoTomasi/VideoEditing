@@ -39,7 +39,8 @@ the video script when there is one (`copione.html`, or `copione.md` in older
 folders), `tagli.json` (the cut list),
 `tagli-<n>.json` (earlier cut lists), `trascrizione-compatta.md`,
 `silenzi.json`, `fotogrammi/`, `note.md`, `montaggio.mp4`, `montaggio.json`,
-`montaggio.srt`, `descrizione.txt` (the YouTube description), the edit's
+`montaggio.srt`, `descrizione.txt` (the YouTube description), `tag.txt` (the
+YouTube tags), the edit's
 transcript, `controllo.json` (the edit at the last
 check), and `giunzioni.wav` with its transcript (the stretches the last
 `--cambiate` check transcribed).
@@ -188,8 +189,17 @@ The edit is final when the user says so. Then:
    - The closing call to action said in the video, if any.
 
    Credit other people's tools to their authors.
-4. Report:
+4. Write the YouTube tags into `tag.txt`, on one line separated by commas, as
+   the user pastes them into YouTube's tag field. YouTube gives tags a minimal
+   role in discovery, mainly for words often misspelled, so keep about fifteen
+   that a viewer would search for: the topic, the tools shown, and the everyday
+   Italian words for them. Leave out names that only appear in the video, such
+   as the people in a demo recording: they would mislead. Stay within 500
+   characters, counting the commas and two quotation marks for each tag with a
+   space.
+5. Report:
    - the description, and any link in it that does not open for anyone;
+   - the tags;
    - how many subtitle corrections you made, and the points you could not make
      out, each with its time in the edit;
    - that `montaggio.srt` is ready to upload.

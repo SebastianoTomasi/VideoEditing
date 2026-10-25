@@ -80,6 +80,12 @@ if it changed since the last check of the whole edit.
 - A YouTube description, proposed by the agent: the video's promise, what it
   shows, the links the video promises, each checked to open for anyone, and
   chapters with timestamps of the edit.
+- YouTube tags, proposed by the agent: about fifteen, on the topic, the tools
+  shown, and the everyday Italian words for them, within YouTube's 500
+  characters. Tags play a minimal role in discovery
+  ([YouTube Help](https://support.google.com/youtube/answer/146402)), so the
+  list stays short. Names that only appear in the video, such as the people in
+  a demo recording, are left out: as tags they would mislead.
 - If the user pressed the OBS marker key while recording, the agent uses the
   markers to find the sentences that went wrong.
 
@@ -102,7 +108,7 @@ subtitles.
 - **Success:** the edit in the video's folder, rendered from the cut list the
   user approved, with its subtitles; the user is told its length and the
   potential problems found at its joins, and gets the proposed description with
-  its chapters.
+  its chapters and the proposed tags.
 - **Rendering fails:** the previous edit stays as it was, and the user is told
   the error.
 - **Transcript without sentence segments:** the feature stops, and the user is

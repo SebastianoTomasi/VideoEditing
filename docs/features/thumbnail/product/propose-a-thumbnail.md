@@ -22,6 +22,9 @@ thumbnail is made is fixed by the Product foundation.
   template live.
 - [Capability](../../edit-video/product/edit-a-video.md#capability) — the
   thumbnail starts from the final edit and the recordings it comes from.
+- [What comes with the edit](../../edit-video/product/edit-a-video.md#what-comes-with-the-edit)
+  — the upload list gathers the subtitles, the description, and the tags made
+  with the final edit.
 
 ## Capability
 
@@ -42,6 +45,13 @@ pairs.
 The thumbnails are JPG files at 3840×2160 in the video's folder, with a
 preview sheet that shows them at the small sizes YouTube uses, under a mock
 duration badge. The agent never uploads anything: the user chooses.
+
+Once the user has chosen, the agent lists what to upload to YouTube: the
+edit, its subtitles, the title, the description, the chosen thumbnail, and
+the tags. The title and the tags come as text ready to paste; everything
+else, the description included, as a link to its file. The list ends with
+what the video's notes still leave open before publishing, such as a link
+that does not open for anyone.
 
 ## Channel style
 

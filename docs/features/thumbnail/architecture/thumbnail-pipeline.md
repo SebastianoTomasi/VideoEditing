@@ -22,7 +22,7 @@ like is in the playbook; what the feature promises is in its
 ## Components
 
 - **The `thumbnail` skill:** the brief, the choice of frames, the prompts for
-  generated pictures, and the layouts, followed by the agent.
+  generated pictures, the layouts, and the upload list, followed by the agent.
 - **The starting template** `.agents/skills/thumbnail/modello/miniatura.html`:
   an HTML page at 1280×720 CSS pixels with three layouts (A, B, C), slots for
   pictures and words, and the channel colours and font in one place. The

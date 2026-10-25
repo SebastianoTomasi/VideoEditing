@@ -79,6 +79,14 @@ chooses and uploads.
 6. **Deliver.** Give the user the three JPEG files and the preview, with one
    line each: the concept, the words, and the times of the source frames. Add
    the titles if you proposed them. The user chooses.
+7. **Upload list.** Once the user has chosen, list what to upload to YouTube,
+   in this order: the video `montaggio.mp4`, the subtitles `montaggio.srt`,
+   the title, the description, the chosen thumbnail's JPEG, and the tags.
+   Link the files, the description's `descrizione.txt` included: the user
+   copies long text from the file. Put the title and the line of `tag.txt`
+   each in its own code block, so each is copied in one gesture. End with
+   whatever `note.md` still leaves open before publishing,
+   such as a link that does not open for anyone.
 
 ## The channel template
 

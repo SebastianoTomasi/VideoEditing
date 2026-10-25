@@ -61,10 +61,11 @@ gives only the feedback on the spoken text.
 7. **Final edit.** When the user says the edit is final, the agent checks the
    whole edit once more if it changed since the last check of the whole edit,
    corrects the subtitles, and writes the YouTube description with its
-   chapters. It says how many subtitle corrections it made and which points it
-   could not make out, each with its timestamp in the edit, and which links in
-   the description do not open for anyone; the subtitles and the description
-   are in the video's folder.
+   chapters and the YouTube tags. It says how many subtitle corrections it
+   made and which points it could not make out, each with its timestamp in the
+   edit, and which links in the description do not open for anyone, and it
+   shows the tags; the subtitles, the description, and the tags are in the
+   video's folder.
 
 ## Waiting and empty states
 

@@ -68,6 +68,7 @@ the agent runs them.
 | `giunzioni.wav`, the stretches of the edit around the joins that changed, and its transcript | `controlla.py`, then the transcriber | the transcriber, then `controlla.py` |
 | `montaggio.srt`, the subtitles | `controlla.py` when it checks the whole edit, then the agent corrects what the transcriber misheard | the user |
 | `descrizione.txt`, the YouTube description with the chapters | the agent | the user |
+| `tag.txt`, the YouTube tags on one line, separated by commas | the agent | the agent, for the upload list; the user |
 
 The cut list names the recordings in order, by path, and lists each stretch
 that changes: its from–to in the recording's time, whether it is cut or sped
