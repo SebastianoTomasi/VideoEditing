@@ -51,6 +51,9 @@ class OriginalsTests(unittest.TestCase):
         self.assertTrue(holding.final)
         self.assertEqual(holding.shared_with, [self.older.name])
 
+    def test_no_videos_folder_yet_holds_nothing(self):
+        self.assertEqual(holdings(self.videos / "missing"), [])
+
     def test_sends_only_the_recordings_to_the_recycle_bin(self):
         recycled = []
 

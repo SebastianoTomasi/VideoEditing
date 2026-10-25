@@ -49,6 +49,8 @@ def named_recordings(folder: Path) -> list[Path]:
 
 def holdings(videos: Path) -> list[Holding]:
     """The video folders that still hold recordings, in name order."""
+    if not videos.is_dir():
+        return []
     folders = sorted(p.resolve() for p in videos.iterdir() if p.is_dir())
     named = {folder: named_recordings(folder) for folder in folders}
     result = []

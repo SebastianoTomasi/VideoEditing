@@ -25,7 +25,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from comune import UserError, main_wrapper, run  # noqa: E402
 
-EDGE = Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
+EDGE_PATHS = [
+    Path(os.environ[var]) / "Microsoft" / "Edge" / "Application" / "msedge.exe"
+    for var in ("ProgramFiles(x86)", "ProgramFiles")
+    if os.environ.get(var)
+]
 CODEX_BIN = Path(os.environ.get("LOCALAPPDATA", "")) / "OpenAI" / "Codex" / "bin"
 CODEX_IMAGES = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")) / "generated_images"
 PREVIEW_SIZES = [(168, 94), (320, 180), (360, 202)]
@@ -79,16 +83,26 @@ def generate(folder: Path, prompt_file: Path, name: str, images: list[Path]) -> 
     return copies
 
 
+def find_edge() -> Path:
+    """Edge where Windows installs it, or else on the PATH."""
+    for path in EDGE_PATHS:
+        if path.exists():
+            return path
+    found = shutil.which("msedge")
+    if not found:
+        raise UserError("non trovo Edge: installa Microsoft Edge")
+    return Path(found)
+
+
 def render(layout: Path) -> Path:
     """Render an HTML layout at 1280×720 CSS pixels, scale 3, into a JPEG."""
-    if not EDGE.exists():
-        raise UserError(f"non trovo Edge in {EDGE}")
+    edge = find_edge()
     png = layout.with_suffix(".png")
     jpg = layout.with_suffix(".jpg")
     with tempfile.TemporaryDirectory() as profile:
         try:
             result = run([
-                str(EDGE), "--headless=new", "--disable-gpu", "--hide-scrollbars", "--mute-audio",
+                str(edge), "--headless=new", "--disable-gpu", "--hide-scrollbars", "--mute-audio",
                 "--no-first-run", "--no-default-browser-check", f"--user-data-dir={profile}",
                 "--window-size=1280,720", "--force-device-scale-factor=3",
                 "--virtual-time-budget=5000", f"--screenshot={png}", layout.resolve().as_uri(),
