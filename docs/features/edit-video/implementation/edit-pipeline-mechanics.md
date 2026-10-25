@@ -21,6 +21,32 @@ Python 3 standard library only, run with the system `python`, with no virtual
 environment. External tools are called with argument lists, never through a
 shell, so paths with spaces work.
 
+## importa.py
+
+- A recording's transcripts are the files beside it named
+  `<recording name without extension> - trascrizione.<ext>`; they move with it.
+- A recording already under `videos/` is left where it is. Before the first
+  move, every source must exist and no target may exist.
+- A new cut list names the recordings in the order given, as absolute paths
+  with forward slashes, and has no changes.
+- Every JSON file directly in the folder (the cut lists, `montaggio.json`,
+  `controllo.json`, `silenzi.json`, the moved transcripts) has each key or
+  string that names a moved recording, compared as a Windows path, replaced
+  with the new path, keeping its slashes and the file's layout. A move on the same drive keeps the size and
+  modification time, so the cached silences stay valid.
+
+## originali.py
+
+- A folder's recordings are the entries of its `tagli.json` that sit in the
+  folder and exist. Its edit counts as final when `descrizione.txt` exists,
+  since the agent writes it when the user says the edit is final.
+- The list gives each folder's recordings, their total size, whether the edit
+  is final, and the other folders whose `tagli.json` names them.
+- `--cestina` sends each recording to the Recycle Bin with `SHFileOperationW`
+  and `FOF_ALLOWUNDO`, without asking but with `FOF_WANTNUKEWARNING`, so that
+  Windows asks before deleting for good a file too large for the Recycle Bin.
+  It then checks that the file is gone.
+
 ## prepara.py
 
 - Silences come from `ffmpeg … -af silencedetect`, starting at −35 dB and

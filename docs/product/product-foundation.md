@@ -104,9 +104,13 @@ scripts, and a reference photo of the user.
 
 The system promises the user that:
 
-- an original recording is never modified, moved, or deleted;
-- the same cut list always yields the same edit: the same stretches, in the
-  same order, at the same speeds.
+- an original recording is never modified. It moves only into its video's
+  folder, once the user confirms which recordings make up the video, and it is
+  deleted only when the user asks to delete the originals of videos whose edit
+  is final, into the Recycle Bin
+  ([ADR 0001](../adr/0001-recordings-move-into-the-video-folder.md));
+- while its recordings exist, the same cut list always yields the same edit:
+  the same stretches, in the same order, at the same speeds.
 
 ## Non-goals
 

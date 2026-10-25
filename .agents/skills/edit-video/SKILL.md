@@ -1,6 +1,6 @@
 ---
 name: edit-video
-description: Edit one of the user's OBS screencast videos (Italian, one speaker) from its transcript, or give feedback on what was said in a recording. Use when the user asks to edit or cut a video ("monta il video di stasera", "fammi il montaggio"), to correct or shorten an edit ("rimetti la frase a 3:20", "più corto", "torna alla versione di prima"), or for feedback on the spoken text of a recording ("dammi un feedback sul testo").
+description: Edit one of the user's OBS screencast videos (Italian, one speaker) from its transcript, or give feedback on what was said in a recording. Use when the user asks to edit or cut a video ("monta il video di stasera", "fammi il montaggio"), to correct or shorten an edit ("rimetti la frase a 3:20", "più corto", "torna alla versione di prima"), for feedback on the spoken text of a recording ("dammi un feedback sul testo"), or to delete the original recordings of edited videos ("cancella gli originali").
 ---
 
 # Edit a video
@@ -15,11 +15,16 @@ Talk to the user in Italian.
 - **Without asking:** read recordings and transcripts, run the scripts below,
   run the transcriber on a recording that has none, sample frames, and write
   files in the video's folder.
+- **Only after the user confirms the recordings:** move them into the video's
+  folder, that is `importa.py`.
 - **Only after the user approves the proposal:** render, that is `monta.py`
   without `--stima`. A correction the user asks for is its own approval.
+- **Only after the user agrees to the list of originals to delete:** send them
+  to the Recycle Bin, that is `originali.py --cestina`.
 - **Never:**
-  - modify, move, or delete a recording, because the originals are the only
-    copy;
+  - modify a recording, or move or delete one except with `importa.py` and
+    `originali.py`, because until the user deletes them the originals are the
+    only copy;
   - commit or push anything under `videos/` or `canale/`, because everything
     about a video stays on this PC;
   - send recordings, frames, or transcripts to any service other than your own
@@ -35,6 +40,8 @@ conversation take precedence over this skill.
 ## The video's folder
 
 `videos/<YYYY-MM-DD>-<name>/` in this repository, out of git. It holds
+the recordings with their OBS names and their transcripts
+(`<name> - trascrizione.json`), until the user deletes the originals,
 the video script when there is one (`copione.html`, or `copione.md` in older
 folders), `tagli.json` (the cut list),
 `tagli-<n>.json` (earlier cut lists), `trascrizione-compatta.md`,
@@ -50,7 +57,7 @@ every stretch it does not list is kept:
 
 ```json
 {
-  "recordings": ["C:/Users/sebas/Videos/OBS/2026-10-10 21-48-35.mp4"],
+  "recordings": ["C:/Users/sebas/Documents/Code/Passion/VideoEditing/videos/2026-10-10-presentazione-advisor/2026-10-10 21-48-35.mp4"],
   "changes": [
     {"recording": 0, "start": 0.0, "end": 20.9, "action": "cut", "reason": "ripartenza", "text": "Buon salve a tutti…"},
     {"recording": 0, "start": 266.9, "end": 290.55, "action": "speed", "reason": "attesa", "text": ""}
@@ -70,10 +77,19 @@ it first; update it at each step.
 
 1. **Recordings.** Look in `C:\Users\sebas\Videos\OBS` for the recordings the
    user means, using the date and time in the file names and skipping files
-   ending in "- montaggio" or "- trascrizione". Propose them in recording order
-   with a folder name; if this video already has a folder with a video script,
-   propose that folder. Once the user confirms, create the folder and a
-   `tagli.json` with the recordings and no changes.
+   ending in "- montaggio" or "- trascrizione". A recording already moved for
+   another video, as when the user has a video edited again from scratch, is
+   in that video's folder: propose it from there. Propose them in recording
+   order with a folder name; if this video already has a folder with a video
+   script, propose that folder. Once the user confirms, run
+   `python scripts/importa.py <folder> "<recording>" ...` with the recordings
+   in order. It creates the folder, moves the recordings out of the OBS folder
+   with their transcripts, keeping their names, and writes `tagli.json` with
+   them and no changes; use the paths it prints from then on. In a folder that
+   already has `tagli.json` it only updates the paths there, so add a new
+   recording to `recordings` yourself. If it refuses, because a file with the
+   same name is already in the folder or a recording is open in OBS or a
+   player, report what it says and wait for the user.
 2. **Transcripts.** For each recording without `<name> - trascrizione.json`
    beside it, run the transcriber in the background and tell the user. One
    transcription at a time. The command, also in the `trascrittore` skill:
@@ -163,6 +179,9 @@ only the feedback: no table, no render.
 - **The `fix-transcript` skill is missing:** tell the user that the
   transcriber must be updated, and that `montaggio.srt` is as the check wrote
   it.
+- **A script cannot find a recording:** if `note.md` says the originals were
+  deleted, tell the user that this edit can no longer be corrected unless they
+  restore its recordings from the Recycle Bin. Otherwise ask where it went.
 
 ## Done
 
@@ -205,3 +224,20 @@ The edit is final when the user says so. Then:
    - that `montaggio.srt` is ready to upload.
 
 Then offer thumbnails with the `thumbnail` skill.
+
+## Deleting the originals
+
+When the user asks to delete the originals ("cancella gli originali") or to
+free disk space:
+
+1. Run `python scripts/originali.py`. It lists the video folders that still
+   hold recordings, with their size, whether the edit is final (the folder has
+   `descrizione.txt`), and the other folders whose cut list uses them. Check
+   the state in each `note.md`.
+2. Propose deleting the recordings of the videos whose edit is final, with the
+   space they take. Say that those edits can no longer be corrected, and wait
+   for the user's agreement. Transcripts, cut lists, notes, the edit, its
+   subtitles, and the thumbnails stay.
+3. Run `python scripts/originali.py --cestina <folder> ...` with the folders
+   the user agreed to. Tell the user how much space emptying the Recycle Bin
+   frees: they empty it themselves. Note the date in each `note.md`.

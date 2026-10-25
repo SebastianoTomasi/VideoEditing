@@ -21,7 +21,11 @@ feature's Frontend.
   — cut points come from the transcriber's segments, so a transcript without
   them stops the feature.
 - [Video folders](../../../architecture/architecture-foundation.md#video-folders)
-  — the cut list, the notes, and the edit are written in the video's folder.
+  — the recordings move into the video's folder, and the cut list, the notes,
+  and the edit are written there.
+- [Compatibility baseline](../../../product/product-foundation.md#compatibility-baseline)
+  — the feature moves a recording only into its video's folder and deletes it
+  only when the user asks to delete the originals.
 - [Playbook](../../../product/product-foundation.md#playbook) — the feedback on
   the spoken text and the cut proposal follow it.
 - [Write a video script](../../video-script/product/write-a-video-script.md#capability)
@@ -30,7 +34,9 @@ feature's Frontend.
 ## Capability
 
 The user asks the agent to edit a video. The agent identifies the recordings
-that make up the video and has the user confirm them. It transcribes any
+that make up the video and has the user confirm them, then moves them out of
+the OBS folder into the video's folder, so that OBS's folder does not fill up
+with recordings already used. It transcribes any
 recording that has no transcript yet, checks sampled frames for content that
 should not be visible, and proposes a cut list with the estimated length of
 the edit. There is no target length: the agent proposes cutting what the video
@@ -57,6 +63,13 @@ correction added or changed are checked, so the user gets their potential
 problems without waiting for the whole edit to be transcribed. The whole edit
 is checked again when the user asks, and when the user says the edit is final
 if it changed since the last check of the whole edit.
+
+When the disk fills up, the user can ask to delete the originals. The agent
+lists the video folders that still hold recordings, with their size and
+whether the edit is final, and proposes deleting the recordings of the videos
+whose edit is final. Once the user agrees, those recordings go to the Recycle
+Bin, which the user empties; everything else in the folders stays. An edit
+whose recordings are deleted can no longer be corrected or rendered again.
 
 ## Cuts and pace
 
@@ -113,6 +126,9 @@ subtitles.
   the error.
 - **Transcript without sentence segments:** the feature stops, and the user is
   told the transcriber must be updated.
+- **Originals deleted:** the recordings the user agreed to delete are in the
+  Recycle Bin; a correction asked for afterwards on one of those videos is
+  refused, and the user is told why.
 
 ## Non-goals
 

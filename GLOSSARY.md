@@ -10,7 +10,7 @@ One publishable piece, made from one or more recordings, that becomes one
 upload.
 _Avoid_: project, clip
 
-**Recording** (_registrazione_):
+**Recording** (_registrazione_; _originale_ when set against the edit):
 One file produced by OBS: the raw material of a video.
 _Avoid_: take, ripresa, footage
 

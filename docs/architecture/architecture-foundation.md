@@ -16,8 +16,9 @@ scripts belongs to Implementation.
   runs only on this PC, driven by a coding agent opened in this repository, so
   the repository is the workspace.
 - [Compatibility baseline](../product/product-foundation.md#compatibility-baseline)
-  — original recordings are never modified, moved, or deleted, so the system
-  only refers to them.
+  — original recordings are never modified, so the system only reads them; it
+  moves them only into their video's folder and deletes them only when the
+  user asks.
 - [Data and privacy](../product/product-foundation.md#data-and-privacy) —
   nothing about a video, and not the reference photo, may go into git or to
   GitHub, so video folders and the channel folder are kept out of git; image
@@ -43,7 +44,8 @@ transcript they write, never through its Docker image or its intermediate
 files. It uses it twice: to transcribe each recording that has no transcript
 yet, and to transcribe each edit, or after a correction only the stretches of
 it around the joins that changed, so that its joins can be checked. Transcripts
-stay where the transcriber writes them, beside the recording or the edit.
+stay where the transcriber writes them, beside the recording or the edit, and
+move with the recording.
 
 Cut points come from the sentence segments that
 [SebastianoTomasi/trascrittore#2](https://github.com/SebastianoTomasi/trascrittore/issues/2)
@@ -71,11 +73,19 @@ template. Like the video folders, it is kept out of git.
 ## Video folders
 
 Each video has a folder `videos/<YYYY-MM-DD>-<name>/` in this repository,
-holding its video script, its cut list, its notes, its edit, and its
-thumbnails. The folder is created by the first of these to exist: the video
-script when there is one, otherwise the edit. Video folders are kept out of
-git: nothing about a video is ever committed. Recordings stay where OBS writes
-them, with their transcripts, and the folder refers to them by path.
+holding its recordings with their transcripts, its video script, its cut list,
+its notes, its edit, and its thumbnails. The folder is created by the first of
+these to exist: the video script when there is one, otherwise the recordings.
+Video folders are kept out of git: nothing about a video is ever committed.
+
+OBS writes recordings into `C:\Users\sebas\Videos\OBS`. Once the user confirms
+which recordings make up a video, they move into the video's folder with their
+OBS names and their transcripts, and the cut list refers to them by path. A
+recording already in another video's folder, as when a video is edited again
+from scratch, stays there and is referred to there. When the user asks to
+delete the originals, the recordings of videos whose edit is final go to the
+Recycle Bin, and everything else in their folders stays
+([ADR 0001](../adr/0001-recordings-move-into-the-video-folder.md)).
 
 ## Agent instructions
 

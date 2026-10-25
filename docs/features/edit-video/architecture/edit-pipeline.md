@@ -23,13 +23,22 @@ instructions live) are in the
 - [Video folders](../../../architecture/architecture-foundation.md#video-folders)
   — every file below lives in the video's folder, out of git.
 - [Compatibility baseline](../../../product/product-foundation.md#compatibility-baseline)
-  — the cut list alone decides the edit, and recordings are only read.
+  — the cut list alone decides the edit. Recordings are only read, except by
+  `importa.py`, which moves them into their video's folder, and
+  `originali.py`, which deletes them when the user asks.
 
 ## Components
 
 - **The `edit-video` skill:** a `SKILL.md` with the fixed rules and the steps
-  of the conversation, followed by the agent. The agent alone writes the cut
-  list and the notes.
+  of the conversation, followed by the agent. The agent alone writes the
+  changes in the cut list and the notes.
+- **`importa.py`:** moves the recordings the user confirmed, with their
+  transcripts, from the OBS folder into the video's folder, keeping their
+  names. It creates the cut list with the recordings when there is none, and
+  otherwise changes the moved recordings' paths in the folder's files that name
+  them.
+- **`originali.py`:** lists the video folders that still hold recordings, and
+  moves the recordings of the folders the user names to the Recycle Bin.
 - **`fotogrammi.py`:** samples frames of a video into contact sheets, each
   frame labelled with its time, for the frame check and for thumbnail
   candidates.
@@ -46,16 +55,18 @@ instructions live) are in the
   changed since the last check: the transcriber transcribes only the
   stretches of the edit around them, and the subtitles stay as they are.
 
-The scripts depend only on ffmpeg, ffprobe, the transcriber's launcher, and
-the files in the video's folder. They never call one another or the agent;
-the agent runs them.
+The scripts depend only on ffmpeg, ffprobe, the transcriber's launcher, the
+files in the video folders, and, for `originali.py`, Windows' Recycle Bin.
+They never call one another or the agent; the agent runs them.
 
 ## Files in a video's folder
 
 | File | Written by | Read by |
 |---|---|---|
+| the recordings, with their OBS names, until `originali.py` moves them to the Recycle Bin | OBS, moved in by `importa.py` | `prepara.py`, `monta.py`, `controlla.py`, `fotogrammi.py` |
+| `<recording> - trascrizione.json`, each recording's transcript | the transcriber, moved in by `importa.py` | `prepara.py`, `controlla.py` |
 | `copione.html` (`copione.md` in older folders), the video script, when there is one | the agent, in the `video-script` feature | the agent, for the feedback |
-| `tagli.json`, the cut list | the agent | `monta.py`, `controlla.py`, the agent |
+| `tagli.json`, the cut list | `importa.py` with the recordings, then the agent | `monta.py`, `controlla.py`, the agent |
 | `tagli-<n>.json`, earlier cut lists | the agent, before it overwrites `tagli.json` | the agent, to go back |
 | `trascrizione-compatta.md`, the compact transcript | `prepara.py` | the agent |
 | `silenzi.json`, the measured silences, cached per recording | `prepara.py` or `monta.py` | `prepara.py`, `monta.py` |
@@ -91,3 +102,8 @@ kept.
   a second transcription.
 - `controlla.py` writes the subtitles only from a transcript of the whole
   edit.
+- `importa.py` never overwrites a file and never moves a recording that is
+  already in a video folder. It checks every move before making the first one,
+  and reports which recordings moved if one move fails.
+- `originali.py` moves recordings only to the Recycle Bin, never deletes them
+  for good, and only for the folders the user names.

@@ -34,7 +34,10 @@ gives only the feedback on the spoken text.
    which recordings make up the video, in order of recording time, and the
    name of its folder, for example `videos/2026-10-10-presentazione-advisor/`;
    if the video already has a folder from its video script, it proposes that
-   one. It goes on only after the user confirms.
+   one. A recording already moved for another video is proposed from that
+   video's folder. It goes on only after the user confirms, then moves the
+   recordings still in the OBS folder, with any transcript, into the video's
+   folder, keeping their names.
 2. **Transcripts.** For each recording without a transcript, the agent starts
    the transcriber in the background, says so, and continues when the
    transcripts are ready.
@@ -67,6 +70,16 @@ gives only the feedback on the spoken text.
    shows the tags; the subtitles, the description, and the tags are in the
    video's folder.
 
+## Deleting the originals
+
+The user asks in their own words, for example "cancella gli originali". The
+agent lists every video folder that still holds recordings: their names and
+total size, whether the edit is final, and any other video whose cut list uses
+them. It proposes deleting the recordings of the videos whose edit is final
+and goes on only after the user agrees. Then it moves them to the Recycle Bin
+and says how much space emptying it frees. If the user later asks to correct
+one of those edits, the agent says that its recordings are deleted.
+
 ## Waiting and empty states
 
 - While the transcriber or the render runs, the agent says what is running and
@@ -86,3 +99,6 @@ shorter edit or for the previous version needs no timestamp.
   transcriber must be updated.
 - A failed render: the agent reports the error, and the previous edit is
   unchanged.
+- A recording that cannot be moved, because a file with its name is already
+  in the video's folder or it is open in another program: the agent says which
+  recordings moved and which did not, and goes on once the user resolves it.
