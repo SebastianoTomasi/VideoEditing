@@ -68,7 +68,7 @@ it becomes an optional cut, or whether it is advice for the next recording.
     YouTube's end screens cover them.
 17. **Audio.** Flag key words that are mumbled, overlapped or covered by noise:
     they also break the captions.
-18. **Against the video script.** When the video has a `copione.md`, compare
+18. **Against the video script.** When the video has a video script, compare
     what was said with it: a skipped scene, a missing promise, an ending that
     drifted.
 

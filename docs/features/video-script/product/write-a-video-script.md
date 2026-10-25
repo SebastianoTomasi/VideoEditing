@@ -19,8 +19,10 @@ when it gives feedback on the spoken text.
 ## Capability
 
 On request, before recording, the agent writes the video script and saves it
-as `copione.md` in a new folder for the video, `videos/<YYYY-MM-DD>-<name>/`;
-the edit later uses the same folder. Like the script written for the advisor
+as `copione.html` in a new folder for the video, `videos/<YYYY-MM-DD>-<name>/`;
+the edit later uses the same folder. It gives the user the page's link, which
+the user opens as a browser dock in OBS to read while recording. Like the
+script written for the advisor
 presentation on 2026-10-10, it holds:
 
 - the target length, used for planning only: the edit does not enforce it;
@@ -42,7 +44,7 @@ data classes declared in
 
 ## Outcome
 
-A `copione.md` in the video's folder, written by the agent and changed as the
+A `copione.html` in the video's folder, written by the agent and changed as the
 user asks.
 
 ## Security screening

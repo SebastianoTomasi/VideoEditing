@@ -5,9 +5,10 @@ description: Write the video script (copione) of one of the user's YouTube scree
 
 # Write a video script
 
-You write `copione.md` for a video the user is about to record: what to say
+You write `copione.html` for a video the user is about to record: what to say
 and show, scene by scene, so that the video works and the recording is easy to
-edit. The accepted spec is
+edit. The user keeps it open as a browser dock in OBS while recording. The
+accepted spec is
 `docs/features/video-script/product/write-a-video-script.md`. Write the script
 and talk to the user in Italian.
 
@@ -22,8 +23,9 @@ repository, an earlier transcript, or notes.
 ## The script
 
 Create `videos/<YYYY-MM-DD>-<name>/`, with the date of the planned recording,
-and write `copione.md` there. The folder stays out of git, and the edit later
-uses the same folder. The script holds:
+copy the template `.agents/skills/video-script/modello/copione.html` there as
+`copione.html`, and fill it as the comment at its top says. The folder stays
+out of git, and the edit later uses the same folder. The script holds:
 
 - **The title line, the target length and the promise in one sentence.** The
   length is for planning only: the edit does not enforce it.
@@ -43,7 +45,7 @@ uses the same folder. The script holds:
   - what to show on screen;
   - the sentences to say more or less as written, in quotes, with the rest
     written as directions;
-  - any message or command to paste, in a code block;
+  - any message or command to paste, in a box with a Copia button;
   - roughly how long it lasts.
 
 Shape the scenes with the playbook:
@@ -58,6 +60,7 @@ script.
 
 ## Done
 
-Show the user the path, the scenes, and the total length, then change the
-script as they ask. When the video is edited, the `edit-video` skill compares
+Give the user the page's absolute `file:///C:/…/copione.html` link, to add in
+OBS as a custom browser dock, with the scenes and the total length; then change
+the script as they ask. When the video is edited, the `edit-video` skill compares
 what was said with this script.

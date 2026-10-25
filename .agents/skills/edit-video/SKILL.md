@@ -35,7 +35,8 @@ conversation take precedence over this skill.
 ## The video's folder
 
 `videos/<YYYY-MM-DD>-<name>/` in this repository, out of git. It holds
-`copione.md` when the video has a video script, `tagli.json` (the cut list),
+the video script when there is one (`copione.html`, or `copione.md` in older
+folders), `tagli.json` (the cut list),
 `tagli-<n>.json` (earlier cut lists), `trascrizione-compatta.md`,
 `silenzi.json`, `fotogrammi/`, `note.md`, `montaggio.mp4`, `montaggio.json`,
 `montaggio.srt`, `descrizione.txt` (the YouTube description), the edit's
@@ -69,7 +70,7 @@ it first; update it at each step.
 1. **Recordings.** Look in `C:\Users\sebas\Videos\OBS` for the recordings the
    user means, using the date and time in the file names and skipping files
    ending in "- montaggio" or "- trascrizione". Propose them in recording order
-   with a folder name; if this video already has a folder with a `copione.md`,
+   with a folder name; if this video already has a folder with a video script,
    propose that folder. Once the user confirms, create the folder and a
    `tagli.json` with the recordings and no changes.
 2. **Transcripts.** For each recording without `<name> - trascrizione.json`
@@ -119,7 +120,7 @@ it first; update it at each step.
    - feedback on the spoken text: at most five points from the playbook, most
      important first, each with its time. A point a cut can fix names that
      optional cut; the others are advice for the next recording. When there is
-     a `copione.md`, compare what was said with it.
+     a video script, compare what was said with it.
 6. **Approval.** Wait for the user. Apply their changes, and the optional cuts
    they choose, to `tagli.json`.
 7. **Render and check.** Run `python scripts/monta.py <folder>`, which takes
@@ -171,14 +172,15 @@ The edit is final when the user says so. Then:
    not count, because it transcribes only stretches and writes no subtitles.
    If the user then corrects the edit, go back to step 8.
 2. Correct `montaggio.srt` with the `fix-transcript` skill, installed with the
-   transcriber, using `copione.md`, `note.md`, and the frame sheets as context.
+   transcriber, using the video script, `note.md`, and the frame sheets as
+   context.
    A full check rewrites `montaggio.srt`, so correct it after the last one.
 3. Write the YouTube description into `descrizione.txt`: Italian plain text,
    no emoji, no hashtags unless the user asks for them.
    - One or two opening sentences with the video's promise, consistent with
      the title when there is one: search results show them.
    - A short list of what the video shows, from the edit's transcript.
-   - Every link the video promises ("in descrizione"), from `copione.md` and
+   - Every link the video promises ("in descrizione"), from the video script and
      the transcript. Check that each one opens for anyone: a private GitHub
      repository does not (`gh repo view <owner>/<name> --json visibility`).
    - Chapters, taken from the spoken signposts in the edit's transcript: the

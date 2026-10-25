@@ -54,7 +54,7 @@ the agent runs them.
 
 | File | Written by | Read by |
 |---|---|---|
-| `copione.md`, the video script, when there is one | the agent, in the `video-script` feature | the agent, for the feedback |
+| `copione.html` (`copione.md` in older folders), the video script, when there is one | the agent, in the `video-script` feature | the agent, for the feedback |
 | `tagli.json`, the cut list | the agent | `monta.py`, `controlla.py`, the agent |
 | `tagli-<n>.json`, earlier cut lists | the agent, before it overwrites `tagli.json` | the agent, to go back |
 | `trascrizione-compatta.md`, the compact transcript | `prepara.py` | the agent |

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Copione NOME</title>
+<!--
+  Video script template: a page the user keeps open as a custom browser dock in
+  OBS while recording. Copy it into the video's folder as copione.html and fill
+  it, replacing every word in capitals; the user reads it in Italian.
+  - Each section is an <h2> with an id; its data-nav label goes in the bar on top.
+  - .screen: what is on screen. .say: the sentences to say, one <p> each, in
+    quotes. .note: directions. .prompt: a message to paste, with its Copia button.
+  - ul.check: the checklist; its ticks survive reloads, separately for each file.
+-->
+<style>
+  :root {
+    --bg: #15171a; --fg: #e8e6e1; --muted: #9a9890; --line: #2c2f34;
+    --say: #fff7e0; --accent: #f2b84b; --code-bg: #0d0f12; --done: #5c5a55;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.45 system-ui, "Segoe UI", sans-serif; }
+  nav { position: sticky; top: 0; z-index: 1; background: var(--bg);
+        border-bottom: 1px solid var(--line); padding: 6px 8px;
+        display: flex; flex-wrap: wrap; gap: 4px; }
+  nav a { color: var(--fg); text-decoration: none; padding: 3px 8px;
+          border: 1px solid var(--line); border-radius: 4px; font-size: 13px; }
+  nav a:hover { border-color: var(--accent); }
+  main { padding: 8px 12px 60vh; }
+  h1 { font-size: 17px; margin: 10px 0 4px; }
+  h2 { font-size: 16px; color: var(--accent); margin: 26px 0 6px;
+       padding-top: 6px; border-top: 1px solid var(--line); scroll-margin-top: 44px; }
+  h3 { font-size: 14px; margin: 14px 0 4px; }
+  .note { color: var(--muted); font-size: 13.5px; margin: 6px 0; }
+  .screen { color: var(--muted); font-size: 13.5px; margin: 4px 0 8px; }
+  .screen b { color: var(--fg); }
+  .say { color: var(--say); font-size: 19px; line-height: 1.5; margin: 10px 0;
+         padding-left: 10px; border-left: 3px solid var(--accent); }
+  .say p { margin: 0 0 8px; }
+  .prompt { display: flex; gap: 6px; align-items: stretch; margin: 10px 0; }
+  .prompt code { flex: 1; background: var(--code-bg); border: 1px solid var(--line);
+                 border-radius: 4px; padding: 8px; font: 14px/1.4 Consolas, monospace;
+                 white-space: pre-wrap; }
+  .prompt button { background: var(--line); color: var(--fg); border: 0;
+                   border-radius: 4px; padding: 0 10px; cursor: pointer; font-size: 12px; }
+  .prompt button.ok { background: var(--accent); color: #000; }
+  ul.check { list-style: none; padding: 0; margin: 4px 0; }
+  ul.check li { margin: 3px 0; font-size: 14px; }
+  ul.check label { cursor: pointer; display: flex; gap: 6px; }
+  ul.check input:checked + span { color: var(--done); text-decoration: line-through; }
+  ul.plain { margin: 4px 0; padding-left: 20px; font-size: 14px; }
+  code.i { background: var(--code-bg); padding: 0 4px; border-radius: 3px;
+           font-family: Consolas, monospace; font-size: .92em; }
+</style>
+</head>
+<body>
+<nav></nav>
+<main>
+<h1>TITOLO</h1>
+<p class="note">DURATA (solo per pianificare) · Promessa: PROMESSA IN UNA FRASE.</p>
+
+<h2 id="prima" data-nav="Prima">Prima di registrare</h2>
+<h3>OBS e schermo</h3>
+<ul class="check">
+  <li><label><input type="checkbox"><span>OBS a 1920×1080, <b>Hybrid MP4</b>, tasto marcatore (<b>Ctrl + &lt;</b>) assegnato.</span></label></li>
+  <li><label><input type="checkbox"><span>Sidebar dell'app chiusa; testo ingrandito (Ctrl +) in ogni app mostrata.</span></label></li>
+  <li><label><input type="checkbox"><span>Webcam in un angolo dove non copre niente di importante.</span></label></li>
+  <li><label><input type="checkbox"><span>Niente di privato a schermo: altre sessioni, email, chiavi, dati dei clienti; "Non disturbare" attivo.</span></label></li>
+</ul>
+<h3>Finestre pronte</h3>
+<ul class="check">
+  <li><label><input type="checkbox"><span>FINESTRA O REPOSITORY, PRONTA PER LA SCENA N.</span></label></li>
+</ul>
+
+<h2 id="durante" data-nav="Durante">Durante la ripresa</h2>
+<ul class="plain">
+  <li>Errore → <b>Ctrl + &lt;</b>, due secondi, ridici <b>tutta</b> la frase.</li>
+  <li>Mentre l'AI lavora: zitto. Il montaggio accelera le attese.</li>
+  <li>Puoi fermare la registrazione tra le scene.</li>
+</ul>
+
+<h2 id="s1" data-nav="1">1 — TITOLO DELLA SCENA (~1:00)</h2>
+<p class="screen"><b>A schermo:</b> COSA SI VEDE.</p>
+<div class="say">
+  <p>"FRASE DA DIRE."</p>
+</div>
+<p class="note">INDICAZIONE.</p>
+<div class="prompt"><code>MESSAGGIO DA INCOLLARE</code><button>Copia</button></div>
+</main>
+<script>
+  // The bar on top links every section that has a data-nav label.
+  var nav = document.querySelector('nav');
+  document.querySelectorAll('h2[data-nav]').forEach(function (h) {
+    var a = document.createElement('a');
+    a.href = '#' + h.id; a.textContent = h.dataset.nav;
+    nav.appendChild(a);
+  });
+  // Copy buttons: the clipboard API can be unavailable on file:// pages, so fall back to execCommand.
+  document.querySelectorAll('.prompt button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.previousElementSibling.textContent;
+      function done() { btn.textContent = 'Copiato'; btn.classList.add('ok');
+        setTimeout(function () { btn.textContent = 'Copia'; btn.classList.remove('ok'); }, 1500); }
+      function fallback() { var t = document.createElement('textarea'); t.value = text;
+        document.body.appendChild(t); t.select(); try { document.execCommand('copy'); } catch (e) {}
+        t.remove(); done(); }
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+    });
+  });
+  // Checklist ticks survive reloads of the dock. Every script shares the file:// origin,
+  // so the key carries the page's path.
+  var key = 'copione-check:' + location.pathname;
+  var boxes = document.querySelectorAll('ul.check input');
+  var saved = [];
+  try { saved = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
+  boxes.forEach(function (b, i) {
+    b.checked = !!saved[i];
+    b.addEventListener('change', function () {
+      try { localStorage.setItem(key, JSON.stringify([].map.call(boxes, function (x) { return x.checked; }))); } catch (e) {}
+    });
+  });
+</script>
+</body>
+</html>
