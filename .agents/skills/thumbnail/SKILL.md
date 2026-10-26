@@ -86,11 +86,11 @@ chooses and uploads.
    line each: the concept, the words, and the times of the source frames. Add
    the titles if you proposed them. The user chooses.
 7. **Upload list.** Once the user has chosen, list what to upload to YouTube,
-   in this order: the video `montaggio.mp4`, the subtitles `montaggio.srt`,
-   the title, the description, the chosen thumbnail's JPEG, and the tags.
+   in this order: the video `montaggio.mp4`, the title, the description, the
+   chosen thumbnail's JPEG, the tags, and the subtitles `montaggio.srt`.
    Link the files, the description's `descrizione.txt` included: the user
    copies long text from the file. Under the links to the video, the
-   subtitles, and the thumbnail, give each file's absolute path too, to paste
+   thumbnail, and the subtitles, give each file's absolute path too, to paste
    into YouTube's file picker. Put these paths, the title, and the line of
    `tag.txt` each in its own code block, so each is copied in one gesture.
    End with whatever `note.md` still leaves open before publishing, such as a

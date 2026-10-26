@@ -47,8 +47,8 @@ preview sheet that shows them at the small sizes YouTube uses, under a mock
 duration badge. The agent never uploads anything: the user chooses.
 
 Once the user has chosen, the agent lists what to upload to YouTube: the
-edit, its subtitles, the title, the description, the chosen thumbnail, and
-the tags. The title and the tags come as text ready to paste; everything
+edit, the title, the description, the chosen thumbnail, the tags, and the
+subtitles. The title and the tags come as text ready to paste; everything
 else, the description included, as a link to its file. The list ends with
 what the video's notes still leave open before publishing, such as a link
 that does not open for anyone.
