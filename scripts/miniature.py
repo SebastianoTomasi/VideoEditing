@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -73,10 +74,19 @@ def generate(folder: Path, prompt_file: Path, name: str, images: list[Path]) -> 
     found = new_images(since)
     if not found:
         raise UserError("Codex ha finito senza salvare immagini: genera da Codex con $imagegen")
-    target = folder / "immagini"
-    target.mkdir(exist_ok=True)
+    return copy_images(found, folder / "immagini", name)
+
+
+def copy_images(found: list[Path], target: Path, name: str) -> list[Path]:
+    """Copy as <name>-<n>, numbering on from the highest <name>-<n> already there."""
+    target.mkdir(parents=True, exist_ok=True)
+    pattern = re.compile(rf"{re.escape(name)}-(\d+)")
+    taken = [
+        int(match.group(1)) for p in target.iterdir()
+        if p.suffix.lower() in IMAGE_SUFFIXES and (match := pattern.fullmatch(p.stem))
+    ]
     copies = []
-    for number, source in enumerate(found, start=1):
+    for number, source in enumerate(found, start=max(taken, default=0) + 1):
         copy = target / f"{name}-{number}{source.suffix.lower()}"
         shutil.copy2(source, copy)
         copies.append(copy)
@@ -158,7 +168,7 @@ def main() -> None:
     gen = sub.add_parser("genera", help="genera un'immagine con Codex")
     gen.add_argument("cartella", type=Path)
     gen.add_argument("--prompt", type=Path, required=True)
-    gen.add_argument("--nome", required=True, help="per esempio B: diventa immagini/B-1.png")
+    gen.add_argument("--nome", required=True, help="per esempio B: diventa immagini/B-1.png, poi B-2.png")
     gen.add_argument("--immagine", type=Path, action="append", default=[])
     ren = sub.add_parser("render", help="trasforma i layout HTML in JPEG")
     ren.add_argument("layout", type=Path, nargs="+")
