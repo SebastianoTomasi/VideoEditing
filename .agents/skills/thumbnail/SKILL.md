@@ -57,9 +57,13 @@ chooses and uploads.
      face, hair and beard exactly as in the attached photo"; and "no text,
      letters, logos or watermarks". Ask for the shape of the slot it fills:
      for the face of B, a portrait (2:3) with the person centred, head and
-     shoulders, on a plain background close to the channel's base colour; for
-     a full background, landscape 16:9 with the empty space where the words
-     go.
+     shoulders, on a plain background close to the channel's base colour,
+     given as the template's `--base` value; for a full background,
+     landscape 16:9 with the empty space where the words go.
+   - Name each attached image in the order you attach it, with its role, for
+     example "Image 1: the face to keep; Image 2: the interface to sharpen".
+     To sharpen or stylize a frame, say what changes and that the interface,
+     its values and its result stay exactly as in the frame.
    - In Claude Code, run
      `python scripts/miniature.py genera <folder> --prompt <file> --nome B --immagine canale/foto.png`,
      adding `--immagine <frame>` for each frame you send. If `codex.exe` is
@@ -71,6 +75,9 @@ chooses and uploads.
      `$CODEX_HOME/generated_images/`, by default `~/.codex/generated_images/`:
      copy it into `<folder>/immagini/` named as `genera` names its copies,
      `<name>-<n>`, for example `immagini/B-1.png`.
+   - Look at each picture before using it. If it has text, a face unlike the
+     photo, or anything the video does not show, fix the prompt and generate
+     again; after two failed tries, use a real frame and say so.
 4. **Layouts.** Copy the template into `<folder>/miniatura-A.html`, `-B.html`
    and `-C.html`. For each, set `data-layout`, fill the slots with images by
    paths relative to the folder, and remove the slots the layout does not use.
