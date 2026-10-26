@@ -70,7 +70,8 @@ chooses and uploads.
      for the face. Codex saves the picture under
      `$CODEX_HOME/generated_images/`, by default `~/.codex/generated_images/`:
      copy it into `<folder>/immagini/` named as `genera` names its copies,
-     `<name>-<n>`, for example `immagini/B-1.png`.
+     `<name>-<n>` with the next number not yet used for that name, for
+     example `immagini/B-1.png`, then `B-2.png`.
 4. **Layouts.** Copy the template into `<folder>/miniatura-A.html`, `-B.html`
    and `-C.html`. For each, set `data-layout`, fill the slots with images by
    paths relative to the folder, and remove the slots the layout does not use.
