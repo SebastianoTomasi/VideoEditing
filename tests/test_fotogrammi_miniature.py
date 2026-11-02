@@ -1,12 +1,16 @@
+import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 from fotogrammi import sheet_filter  # noqa: E402
-from miniature import copy_images, preview_graph  # noqa: E402
+from miniature import copy_images, preview_graph, render  # noqa: E402
 
 
 class SheetFilterTests(unittest.TestCase):
@@ -71,6 +75,46 @@ class CopyImagesTests(unittest.TestCase):
         copies = copy_images([self.picture("new.webp", b"new")], self.target, "B")
 
         self.assertEqual([p.name for p in copies], ["B-4.webp"])
+
+
+class RenderTests(unittest.TestCase):
+    """Edge and ffmpeg are faked; the fake Edge, like the real one, writes a
+    relative --screenshot against a working directory of its own."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name).resolve()
+        self.edge_dir = self.root / "edge"
+        self.edge_dir.mkdir()
+        self.folder = self.root / "videos" / "prova"
+        self.folder.mkdir(parents=True)
+        (self.folder / "miniatura-A.html").write_text("<html></html>", encoding="utf-8")
+        self.cwd = os.getcwd()
+        os.chdir(self.root)
+
+    def tearDown(self):
+        os.chdir(self.cwd)
+        self.tmp.cleanup()
+
+    def fake_run(self, args, **kwargs):
+        if args[0] == "msedge.exe":
+            screenshot = next(a for a in args if a.startswith("--screenshot=")).split("=", 1)[1]
+            target = self.edge_dir / screenshot
+            if not target.parent.is_dir():
+                return subprocess.CompletedProcess(args, 0, "", f"Failed to write file {screenshot}")
+            target.write_bytes(b"png")
+        else:
+            shutil.copy(args[args.index("-i") + 1], args[-1])
+        return subprocess.CompletedProcess(args, 0, "", "")
+
+    def test_relative_layout_renders_next_to_it(self):
+        with mock.patch("miniature.find_edge", return_value=Path("msedge.exe")), \
+                mock.patch("miniature.run", side_effect=self.fake_run):
+            jpg = render(Path("videos/prova/miniatura-A.html"))
+
+        self.assertEqual(jpg, self.folder / "miniatura-A.jpg")
+        self.assertEqual(jpg.read_bytes(), b"png")
+        self.assertFalse((self.folder / "miniatura-A.png").exists())
 
 
 if __name__ == "__main__":
