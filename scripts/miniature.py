@@ -63,7 +63,7 @@ def generate(folder: Path, prompt_file: Path, name: str, images: list[Path]) -> 
     for image in images:
         if not image.exists():
             raise UserError(f"non trovo l'immagine {image}")
-        args += ["-i", str(image)]
+        args += ["-i", str(image.resolve())]  # the file checked here, even if Codex resolves against -C
     since = time.time() - 1
     try:
         result = run(args + ["-"], input=prompt, timeout=900)
@@ -105,8 +105,13 @@ def find_edge() -> Path:
 
 
 def render(layout: Path) -> Path:
-    """Render an HTML layout at 1280×720 CSS pixels, scale 3, into a JPEG."""
+    """Render an HTML layout at 1280×720 CSS pixels, scale 3, into a JPEG.
+
+    Edge writes a relative --screenshot against its own working directory,
+    not ours, so every path starts from the resolved layout.
+    """
     edge = find_edge()
+    layout = layout.resolve()
     png = layout.with_suffix(".png")
     jpg = layout.with_suffix(".jpg")
     with tempfile.TemporaryDirectory() as profile:
@@ -115,7 +120,7 @@ def render(layout: Path) -> Path:
                 str(edge), "--headless=new", "--disable-gpu", "--hide-scrollbars", "--mute-audio",
                 "--no-first-run", "--no-default-browser-check", f"--user-data-dir={profile}",
                 "--window-size=1280,720", "--force-device-scale-factor=3",
-                "--virtual-time-budget=5000", f"--screenshot={png}", layout.resolve().as_uri(),
+                "--virtual-time-budget=5000", f"--screenshot={png}", layout.as_uri(),
             ], timeout=120)
         except subprocess.TimeoutExpired:
             raise UserError(f"Edge non ha finito di renderizzare {layout}")
@@ -185,7 +190,7 @@ def main() -> None:
             print(f"Thumbnail: {render(layout)}")
     else:
         preview(args.miniature, args.uscita)
-        print(f"Anteprima: {args.uscita}")
+        print(f"Anteprima: {args.uscita.resolve()}")
 
 
 if __name__ == "__main__":
