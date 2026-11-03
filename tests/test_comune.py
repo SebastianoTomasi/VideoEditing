@@ -1,9 +1,15 @@
+import json
+import os
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
+import comune  # noqa: E402
 from comune import (  # noqa: E402
     Change,
     CutList,
@@ -15,6 +21,8 @@ from comune import (  # noqa: E402
     parse_time,
     snap_cut_end,
     snap_cut_start,
+    transcriber_name,
+    transcript_path,
 )
 
 REC = [Path("rec.mp4")]
@@ -169,6 +177,77 @@ class TimelineTests(unittest.TestCase):
         recording, t = edit_to_source(timeline, 19.7)  # one second into the sped-up wait
         self.assertEqual(recording, 0)
         self.assertAlmostEqual(t, 30.0)
+
+
+class TranscriptPathTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.folder = Path(self.tmp.name)
+        self.recording = self.folder / "2026-11-03 14-58-48.mp4"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def write(self, relative: str, mtime: float, file: str | None = None) -> Path:
+        path = self.folder / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"file": file} if file else {}), encoding="utf-8")
+        os.utime(path, (mtime, mtime))
+        return path
+
+    def test_names_are_written_the_way_the_transcriber_writes_them(self):
+        self.assertEqual(transcriber_name("2026-11-03 14-58-48"), "2026-11-03-14-58-48")
+        self.assertEqual(transcriber_name("montaggio"), "montaggio")
+        self.assertEqual(transcriber_name(" Città già fatta! "), "citta-gia-fatta")
+        self.assertEqual(transcriber_name("!!"), "registrazione")
+
+    def test_a_missing_transcript_is_where_the_transcriber_writes_it(self):
+        self.assertEqual(
+            transcript_path(self.recording),
+            self.folder / "2026-11-03-14-58-48" / "2026-11-03-14-58-48-trascrizione.json",
+        )
+
+    def test_each_layout_is_found(self):
+        for relative in (
+            "2026-11-03-14-58-48/2026-11-03-14-58-48-trascrizione.json",
+            "2026-11-03-14-58-48-trascrizione.json",
+            "2026-11-03 14-58-48 - trascrizione.json",
+        ):
+            with self.subTest(relative=relative):
+                path = self.write(relative, 1_000_000)
+                self.assertEqual(transcript_path(self.recording), path)
+                path.unlink()
+
+    def test_the_newest_transcript_wins(self):
+        self.write("montaggio - trascrizione.json", 1_000_000)
+        newer = self.write("montaggio/montaggio-trascrizione.json", 2_000_000)
+        self.assertEqual(transcript_path(self.folder / "montaggio.mp4"), newer)
+        older = self.write("montaggio - trascrizione.json", 3_000_000)
+        self.assertEqual(transcript_path(self.folder / "montaggio.mp4"), older)
+
+    def test_a_transcript_of_another_file_with_the_same_name_is_skipped(self):
+        own = self.write("2026-11-03 14-58-48 - trascrizione.json", 1_000_000)
+        self.write("2026-11-03-14-58-48/2026-11-03-14-58-48-trascrizione.json", 2_000_000,
+                   file="2026-11-03-14-58-48.mp4")
+        self.assertEqual(transcript_path(self.recording), own)
+        renamed = self.folder / "2026-11-03-14-58-48.mp4"
+        self.assertEqual(transcript_path(renamed).parent.name, "2026-11-03-14-58-48")
+
+
+class TranscribeTests(unittest.TestCase):
+    def test_returns_the_transcript_the_summary_names(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            launcher = folder / "trascrittore.ps1"
+            launcher.write_text("", encoding="utf-8")
+            written = folder / "montaggio" / "montaggio-trascrizione.json"
+            summary = json.dumps({"status": "ok", "transcript_json": str(written)})
+            done = subprocess.CompletedProcess([], 0, stdout=f"Trascrivo...\n{summary}\n", stderr="")
+            with mock.patch.object(comune, "TRANSCRIBER", launcher), \
+                    mock.patch.object(comune, "run", return_value=done) as run:
+                self.assertEqual(comune.transcribe(folder / "montaggio.mp4", folder), written)
+            args = run.call_args.args[0]
+            self.assertEqual(args[args.index("--out-dir") + 1], str(folder))
 
 
 if __name__ == "__main__":

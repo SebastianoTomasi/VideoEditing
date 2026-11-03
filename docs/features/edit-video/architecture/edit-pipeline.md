@@ -64,7 +64,7 @@ They never call one another or the agent; the agent runs them.
 | File | Written by | Read by |
 |---|---|---|
 | the recordings, with their OBS names, until `originali.py` moves them to the Recycle Bin | OBS, moved in by `importa.py` | `prepara.py`, `monta.py`, `controlla.py`, `fotogrammi.py` |
-| `<recording> - trascrizione.json`, each recording's transcript | the transcriber, moved in by `importa.py` | `prepara.py`, `controlla.py` |
+| each recording's transcript, where the [transcriber](../../../architecture/architecture-foundation.md#transcriber) writes it | the transcriber, moved in by `importa.py` | `prepara.py`, `controlla.py` |
 | `copione.html` (`copione.md` in older folders), the video script, when there is one | the agent, in the `video-script` feature | the agent, for the feedback |
 | `tagli.json`, the cut list | `importa.py` with the recordings, then the agent | `monta.py`, `controlla.py`, the agent |
 | `tagli-<n>.json`, earlier cut lists | the agent, before it overwrites `tagli.json` | the agent, to go back |

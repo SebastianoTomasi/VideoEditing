@@ -2,13 +2,16 @@
 
     python scripts/importa.py <video folder> <recording> [<recording> ...]
 
-Each recording keeps its OBS name and moves with its transcripts
-("<name> - trascrizione.json" and ".txt"). A recording already in a video
-folder stays where it is. Every JSON file of the folder (cut lists, edit map,
-check record, silence cache, transcripts) is pointed at the moved recordings,
-and a folder without tagli.json gets one with the recordings in the order
-given and no changes. Nothing is ever overwritten: every move is checked
-before the first one.
+Each recording keeps its OBS name and moves with its transcripts, which keep
+their names: the folder "<nome>/" the transcriber makes beside it, holding
+"<nome>-trascrizione.json" and ".txt", or the files beside it, either
+"<nome>-trascrizione.*" when the transcriber moved the recording into that
+folder or "<name> - trascrizione.*" from before it made folders. A recording
+already in a video folder stays where it is. Every JSON file of the folder
+(cut lists, edit map, check record, silence cache) and every moved transcript
+is pointed at the moved recordings, and a folder without tagli.json gets one
+with the recordings in the order given and no changes. Nothing is ever
+overwritten: every move is checked before the first one.
 """
 
 from __future__ import annotations
@@ -24,10 +27,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from comune import CUT_LIST, UserError, main_wrapper  # noqa: E402
+from comune import CUT_LIST, UserError, main_wrapper, transcriber_name  # noqa: E402
 
 VIDEOS = Path(__file__).resolve().parents[1] / "videos"
-TRANSCRIPT_INFIX = " - trascrizione."
 
 
 def path_key(path: str | Path) -> str:
@@ -35,10 +37,20 @@ def path_key(path: str | Path) -> str:
     return os.path.normcase(os.path.abspath(path))
 
 
+def transcript_folder(recording: Path) -> Path:
+    """The folder that the transcriber, given --out-dir, makes beside a recording."""
+    return recording.parent / transcriber_name(recording.stem)
+
+
 def transcripts_of(recording: Path) -> list[Path]:
-    """The transcriber's files beside a recording, such as '<name> - trascrizione.json'."""
-    prefix = (recording.stem + TRANSCRIPT_INFIX).casefold()
-    return sorted(p for p in recording.parent.iterdir() if p.is_file() and p.name.casefold().startswith(prefix))
+    """The transcriber's files of a recording, in its transcript folder or beside it."""
+    name = transcriber_name(recording.stem)
+    prefixes = (f"{name}-trascrizione.", f"{recording.stem} - trascrizione.".casefold())
+    places = [place for place in (recording.parent, transcript_folder(recording)) if place.is_dir()]
+    return sorted(
+        path for place in places for path in place.iterdir()
+        if path.is_file() and path.name.casefold().startswith(prefixes)
+    )
 
 
 def plan_moves(folder: Path, recordings: list[Path], videos: Path) -> list[tuple[Path, Path]]:
@@ -51,7 +63,7 @@ def plan_moves(folder: Path, recordings: list[Path], videos: Path) -> list[tuple
         if recording.resolve().is_relative_to(videos.resolve()):
             continue
         for source in [recording, *transcripts_of(recording)]:
-            target = folder / source.name
+            target = folder / source.relative_to(recording.parent)
             if target.exists() or path_key(target) in targets:
                 raise UserError(f"{target} esiste già: non sposto niente, per non sovrascriverlo")
             targets.add(path_key(target))
@@ -140,17 +152,31 @@ def import_recordings(
     failure = None
     for source, target in moves:
         try:
+            target.parent.mkdir(exist_ok=True)
             move_file(source, target)
         except OSError as error:
             failure = f"non riesco a spostare {source}: {error}"
             break
         moved[path_key(source)] = target
-        report(f"Spostato {source.name}")
+        report(f"Spostato {target.relative_to(folder).as_posix()}")
+    for recording in recordings:
+        if path_key(recording) not in moved:
+            continue
+        # The transcriber's folders of a moved recording go once the moves leave them empty,
+        # including one made here for transcripts that then failed to move.
+        name = transcriber_name(recording.stem)
+        for place in (transcript_folder(recording), recording.parent, folder / name):
+            if place.name == name and place.is_dir() and not any(place.iterdir()):
+                try:
+                    place.rmdir()
+                except OSError:
+                    pass
 
     if moved:
-        for path in sorted(folder.glob("*.json")):
+        moved_transcripts = [target for target in moved.values() if target.suffix == ".json" and target.parent != folder]
+        for path in [*sorted(folder.glob("*.json")), *moved_transcripts]:
             if repoint(path, moved):
-                report(f"Aggiornato {path.name}")
+                report(f"Aggiornato {path.relative_to(folder).as_posix()}")
     paths = [moved.get(path_key(recording), recording) for recording in recordings]
     cut_list = folder / CUT_LIST
     if not cut_list.exists():
