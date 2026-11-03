@@ -45,8 +45,13 @@ transcript they write, never through its Docker image or its intermediate
 files. It uses it twice: to transcribe each recording that has no transcript
 yet, and to transcribe each edit, or after a correction only the stretches of
 it around the joins that changed, so that its joins can be checked. Transcripts
-stay where the transcriber writes them, beside the recording or the edit, and
-move with the recording.
+stay where the transcriber writes them and move with the recording. The system
+always gives the transcriber the folder of the recording or the edit, where it
+writes each transcript in a folder of its own named after the file in
+lowercase with hyphens; without that folder, the transcriber would move and
+rename the recording. Transcripts written before the transcriber made these
+folders sit beside their file as `<file name> - trascrizione.json` and stay
+valid.
 
 The agent takes the launcher's command from the `trascrittore` skill, which
 the transcriber's installer writes with the launcher's path on that PC. The

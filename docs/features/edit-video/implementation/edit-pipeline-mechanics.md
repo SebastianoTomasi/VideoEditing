@@ -14,6 +14,8 @@ responsible for and guarantees is in the feature's
 - [Components](../architecture/edit-pipeline.md#components) and
   [Invariants and failures](../architecture/edit-pipeline.md#invariants-and-failures)
   — the mechanics below satisfy them.
+- [Transcriber](../../../architecture/architecture-foundation.md#transcriber)
+  — the scripts find transcripts where it writes them.
 
 ## Runtime
 
@@ -21,16 +23,30 @@ Python 3 standard library only, run with the system `python`, with no virtual
 environment. External tools are called with argument lists, never through a
 shell, so paths with spaces work.
 
+## Transcripts
+
+- A file's `<nome>` is its name without extension written as the transcriber
+  writes names: without accents, lowercase, each run of characters other than
+  a–z and 0–9 replaced by one hyphen.
+- A file's JSON transcript is `<nome>/<nome>-trascrizione.json` beside it, or
+  `<nome>-trascrizione.json` beside a file the transcriber moved into that
+  folder, or `<file name without extension> - trascrizione.json` beside it in
+  older folders. When several exist, the scripts read the newest.
+- The scripts run the transcriber with `--out-dir` set to the video's folder
+  and read the transcript at the path its summary gives.
+
 ## importa.py
 
-- A recording's transcripts are the files beside it named
-  `<recording name without extension> - trascrizione.<ext>`; they move with it.
+- A recording's transcripts are the `.json` and `.txt` files named as in
+  [Transcripts](#transcripts), in any of those places; they move with it,
+  keeping their names and their `<nome>` folder. That folder, in the OBS
+  folder, is removed once the move leaves it empty.
 - A recording already under `videos/` is left where it is. Before the first
   move, every source must exist and no target may exist.
 - A new cut list names the recordings in the order given, as absolute paths
   with forward slashes, and has no changes.
 - Every JSON file directly in the folder (the cut lists, `montaggio.json`,
-  `controllo.json`, `silenzi.json`, the moved transcripts) has each key or
+  `controllo.json`, `silenzi.json`) and every moved transcript has each key or
   string that names a moved recording, compared as a Windows path, replaced
   with the new path, keeping its slashes and the file's layout. A move on the same drive keeps the size and
   modification time, so the cached silences stay valid.
