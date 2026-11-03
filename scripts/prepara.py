@@ -3,7 +3,8 @@
     python scripts/prepara.py <video folder>
 
 Reads the recordings listed in tagli.json, their transcripts (written by the
-transcriber beside each recording), the measured silences and any OBS
+transcriber in a folder of its own beside each recording, or beside it in
+older video folders), the measured silences and any OBS
 markers, and writes trascrizione-compatta.md: one line per sentence, with the
 pause before it, plus waits, possible retakes, audio without text, silences
 hidden inside a sentence, and markers.

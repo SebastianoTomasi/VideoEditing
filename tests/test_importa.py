@@ -10,6 +10,7 @@ from comune import UserError  # noqa: E402
 from importa import import_recordings  # noqa: E402
 
 NAME = "2026-10-25 21-14-56"
+SLUG = "2026-10-25-21-14-56"
 
 
 class ImportTests(unittest.TestCase):
@@ -94,6 +95,40 @@ class ImportTests(unittest.TestCase):
 
         self.assertTrue(kept.exists())
         self.assertEqual(paths, [kept, self.folder / f"{NAME}.mp4"])
+
+    def test_moves_the_transcript_folder_of_the_transcriber(self):
+        for old in self.obs.glob("* - trascrizione.*"):
+            old.unlink()
+        transcripts = self.obs / SLUG
+        transcripts.mkdir()
+        transcript = {"file": f"{NAME}.mp4", "recording": str(self.recording), "turns": []}
+        (transcripts / f"{SLUG}-trascrizione.json").write_text(json.dumps(transcript, indent=2), encoding="utf-8")
+        (transcripts / f"{SLUG}-trascrizione.txt").write_text("Trascrizione", encoding="utf-8")
+
+        paths = self.run_import(self.recording)
+
+        moved = self.folder / f"{NAME}.mp4"
+        self.assertEqual(paths, [moved])
+        self.assertTrue((self.folder / SLUG / f"{SLUG}-trascrizione.txt").exists())
+        self.assertEqual(list(self.obs.iterdir()), [])
+        transcript = json.loads((self.folder / SLUG / f"{SLUG}-trascrizione.json").read_text(encoding="utf-8"))
+        self.assertEqual(transcript["recording"], str(moved))
+
+    def test_moves_a_recording_the_transcriber_moved_into_its_folder(self):
+        own = self.obs / SLUG
+        own.mkdir()
+        recording = own / f"{SLUG}.mp4"
+        recording.write_bytes(b"video")
+        transcript = {"file": f"{SLUG}.mp4", "recording": str(recording), "turns": []}
+        (own / f"{SLUG}-trascrizione.json").write_text(json.dumps(transcript, indent=2), encoding="utf-8")
+
+        paths = self.run_import(recording)
+
+        moved = self.folder / f"{SLUG}.mp4"
+        self.assertEqual(paths, [moved])
+        self.assertFalse(own.exists())
+        transcript = json.loads((self.folder / f"{SLUG}-trascrizione.json").read_text(encoding="utf-8"))
+        self.assertEqual(transcript["recording"], str(moved))
 
     def test_stops_on_a_missing_recording(self):
         with self.assertRaises(UserError):

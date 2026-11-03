@@ -1,4 +1,6 @@
+import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -15,6 +17,8 @@ from comune import (  # noqa: E402
     parse_time,
     snap_cut_end,
     snap_cut_start,
+    transcriber_name,
+    transcript_path,
 )
 
 REC = [Path("rec.mp4")]
@@ -169,6 +173,53 @@ class TimelineTests(unittest.TestCase):
         recording, t = edit_to_source(timeline, 19.7)  # one second into the sped-up wait
         self.assertEqual(recording, 0)
         self.assertAlmostEqual(t, 30.0)
+
+
+class TranscriptPathTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.folder = Path(self.tmp.name)
+        self.recording = self.folder / "2026-11-03 14-58-48.mp4"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def write(self, relative: str, mtime: float) -> Path:
+        path = self.folder / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}", encoding="utf-8")
+        os.utime(path, (mtime, mtime))
+        return path
+
+    def test_names_are_written_the_way_the_transcriber_writes_them(self):
+        self.assertEqual(transcriber_name("2026-11-03 14-58-48"), "2026-11-03-14-58-48")
+        self.assertEqual(transcriber_name("montaggio"), "montaggio")
+        self.assertEqual(transcriber_name(" Città già fatta! "), "citta-gia-fatta")
+        self.assertEqual(transcriber_name("!!"), "registrazione")
+
+    def test_a_missing_transcript_is_where_the_transcriber_writes_it(self):
+        self.assertEqual(
+            transcript_path(self.recording),
+            self.folder / "2026-11-03-14-58-48" / "2026-11-03-14-58-48-trascrizione.json",
+        )
+
+    def test_each_layout_is_found(self):
+        for relative in (
+            "2026-11-03-14-58-48/2026-11-03-14-58-48-trascrizione.json",
+            "2026-11-03-14-58-48-trascrizione.json",
+            "2026-11-03 14-58-48 - trascrizione.json",
+        ):
+            with self.subTest(relative=relative):
+                path = self.write(relative, 1_000_000)
+                self.assertEqual(transcript_path(self.recording), path)
+                path.unlink()
+
+    def test_the_newest_transcript_wins(self):
+        self.write("montaggio - trascrizione.json", 1_000_000)
+        newer = self.write("montaggio/montaggio-trascrizione.json", 2_000_000)
+        self.assertEqual(transcript_path(self.folder / "montaggio.mp4"), newer)
+        older = self.write("montaggio - trascrizione.json", 3_000_000)
+        self.assertEqual(transcript_path(self.folder / "montaggio.mp4"), older)
 
 
 if __name__ == "__main__":

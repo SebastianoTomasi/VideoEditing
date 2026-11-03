@@ -369,15 +369,14 @@ def main() -> None:
             write_excerpts(edit, stretches, audio)
             print(f"Trascrivo {fmt(sum(end - start for start, end in stretches))} del montaggio…",
                   file=sys.stderr)
-            transcribe(audio, folder)
-            heard = heard_in_excerpts(load_segments(transcript_path(audio)), stretches)
+            heard = heard_in_excerpts(load_segments(transcribe(audio, folder)), stretches)
             problems = compare_excerpts(expected, heard, joins, straddling, timeline.duration)
         checked = f"{len(joins)} giunzioni cambiate dall'ultimo controllo, su {len(timeline.joins)}"
     else:
         edit_transcript = transcript_path(edit)
         if not edit_transcript.exists() or edit_transcript.stat().st_mtime < edit.stat().st_mtime:
             print("Trascrivo il montaggio…", file=sys.stderr)
-            transcribe(edit, folder)
+            edit_transcript = transcribe(edit, folder)
         problems = compare(expected, heard_words(load_segments(edit_transcript)), timeline.joins, straddling)
         checked = f"{len(timeline.joins)} giunzioni controllate"
 

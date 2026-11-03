@@ -40,10 +40,9 @@ conversation take precedence over this skill.
 ## The video's folder
 
 `videos/<YYYY-MM-DD>-<name>/` in this repository, out of git. It holds
-the recordings with their OBS names and their transcripts
-(`<name> - trascrizione.json`), until the user deletes the originals,
-the video script when there is one (`copione.html`, or `copione.md` in older
-folders), `tagli.json` (the cut list),
+the recordings with their OBS names, until the user deletes the originals,
+their transcripts, the video script when there is one (`copione.html`, or
+`copione.md` in older folders), `tagli.json` (the cut list),
 `tagli-<n>.json` (earlier cut lists), `trascrizione-compatta.md`,
 `silenzi.json`, `fotogrammi/`, `note.md`, `montaggio.mp4`, `montaggio.json`,
 `montaggio.srt`, `descrizione.txt` (the YouTube description), `tag.txt` (the
@@ -51,6 +50,13 @@ YouTube tags), the edit's
 transcript, `controllo.json` (the edit at the last
 check), and `giunzioni.wav` with its transcript (the stretches the last
 `--cambiate` check transcribed).
+
+The transcriber writes each transcript in a folder of its own, named after the
+file in lowercase with hyphens: `2026-11-03 14-58-48.mp4` gets
+`2026-11-03-14-58-48/2026-11-03-14-58-48-trascrizione.json` and `.txt`, the
+edit `montaggio/montaggio-trascrizione.json`. Older folders have
+`<name> - trascrizione.json` beside the recording instead. The scripts read
+both; never rename or move a transcript or its folder.
 
 `tagli.json` lists the recordings in order and every stretch that changes;
 every stretch it does not list is kept:
@@ -78,10 +84,12 @@ it first; update it at each step.
 1. **Recordings.** Look in the OBS folder for the recordings the user means:
    the folder in the `OBS_REGISTRAZIONI` environment variable, or else
    `%USERPROFILE%\Videos\OBS`; if neither exists, ask the user where OBS saves
-   recordings. Use the date and time in the file names, skipping files
-   ending in "- montaggio" or "- trascrizione". A recording already moved for
-   another video, as when the user has a video edited again from scratch, is
-   in that video's folder: propose it from there. Propose them in recording
+   recordings. Use the date and time in the file names, skipping edits and
+   transcripts (names with "montaggio" or "trascrizione"). A recording
+   transcribed there before may be in a folder of its own, renamed by the
+   transcriber as `2026-11-03-14-58-48/2026-11-03-14-58-48.mp4`. A recording
+   already moved for another video, as when the user has a video edited again
+   from scratch, is in that video's folder: propose it from there. Propose them in recording
    order with a folder name; if this video already has a folder with a video
    script, propose that folder. Once the user confirms, run
    `python scripts/importa.py <folder> "<recording>" ...` with the recordings
@@ -92,11 +100,16 @@ it first; update it at each step.
    recording to `recordings` yourself. If it refuses, because a file with the
    same name is already in the folder or a recording is open in OBS or a
    player, report what it says and wait for the user.
-2. **Transcripts.** For each recording without `<name> - trascrizione.json`
-   beside it, run the transcriber in the background and tell the user. One
-   transcription at a time. Take the launcher's command from the
-   `trascrittore` skill, which the transcriber installs with its path on this
-   PC, and run `transcribe "<recording>" --speakers 1` with it.
+2. **Transcripts.** For each recording without a transcript in either place
+   (see [The video's folder](#the-videos-folder)), run the transcriber in the
+   background and tell the user. One transcription at a time. Take the
+   launcher's command from the `trascrittore` skill, which the transcriber
+   installs with its path on this PC, and run
+   `transcribe "<recording>" --speakers 1 --out-dir "<folder>"` with it.
+   `--out-dir` keeps the recording where `tagli.json` names it: without it the
+   transcriber moves and renames the recording. Of the `trascrittore` skill
+   follow only the transcription: do not title the transcript's folder, since
+   the scripts find it by its name, and leave the frames to step 4.
 3. **Read.** Run `python scripts/prepara.py <folder>` and read
    `trascrizione-compatta.md`. If the script says the transcript has no
    sentence segments, stop and tell the user that the transcriber must be

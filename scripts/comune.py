@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 import time
+import unicodedata
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -24,6 +25,8 @@ EDIT_MAP = "montaggio.json"
 SUBTITLES = "montaggio.srt"
 CHECK_RECORD = "controllo.json"
 EXCERPTS = "giunzioni.wav"
+TRANSCRIPT_SUFFIX = "-trascrizione.json"
+OLD_TRANSCRIPT_SUFFIX = " - trascrizione.json"
 
 SILENCE_NOISE_DB = -35
 SILENCE_MIN_SEC = 0.3
@@ -287,9 +290,39 @@ class Segment:
     text: str
 
 
+def transcriber_name(stem: str) -> str:
+    """A name as the transcriber writes the names it creates.
+
+    No accents, lowercase, and every run of characters other than a-z and 0-9
+    becomes one hyphen: '2026-11-03 14-58-48' -> '2026-11-03-14-58-48'.
+    """
+    plain = "".join(c for c in unicodedata.normalize("NFKD", stem) if not unicodedata.combining(c))
+    return re.sub(r"[^a-z0-9]+", "-", plain.lower()).strip("-") or "registrazione"
+
+
+def transcript_places(media: Path) -> list[Path]:
+    """Where the JSON transcript of a media file can be.
+
+    The transcriber given --out-dir writes '<name>/<name>-trascrizione.json'
+    there, <name> being the file's transcriber_name; without it, it moves the
+    file into that folder, so the transcript is beside it. Older video folders
+    have '<file name> - trascrizione.json' beside the file.
+    """
+    name = transcriber_name(media.stem)
+    return [
+        media.parent / name / f"{name}{TRANSCRIPT_SUFFIX}",
+        media.parent / f"{name}{TRANSCRIPT_SUFFIX}",
+        media.with_name(f"{media.stem}{OLD_TRANSCRIPT_SUFFIX}"),
+    ]
+
+
 def transcript_path(media: Path) -> Path:
-    """Where the transcriber writes the JSON transcript of a media file."""
-    return media.with_name(f"{media.stem} - trascrizione.json")
+    """The newest JSON transcript of a media file, or where transcribe() writes one."""
+    places = transcript_places(media)
+    found = [path for path in places if path.is_file()]
+    if not found:
+        return places[0]
+    return max(found, key=lambda path: path.stat().st_mtime)
 
 
 def load_segments(path: Path) -> list[Segment]:
@@ -311,11 +344,12 @@ def words(text: str) -> list[str]:
     return re.findall(r"\w+", text.lower())
 
 
-def transcribe(media: Path, out_dir: Path, wait_limit_sec: float = 3600) -> dict:
-    """Run the local transcriber on a file and return its JSON summary.
+def transcribe(media: Path, out_dir: Path, wait_limit_sec: float = 3600) -> Path:
+    """Run the local transcriber on a file and return its JSON transcript.
 
-    When another transcription is running (exit status 3, "busy"), wait and
-    try again instead of starting a second one.
+    The transcript goes in a folder of its own inside out_dir, and the file
+    stays where it is. When another transcription is running (exit status 3,
+    "busy"), wait and try again instead of starting a second one.
     """
     if not TRANSCRIBER.exists():
         raise UserError(
@@ -340,7 +374,9 @@ def transcribe(media: Path, out_dir: Path, wait_limit_sec: float = 3600) -> dict
         if result.returncode != 0 or summary.get("status") != "ok":
             message = summary.get("message") or result.stderr.strip()[-500:]
             raise UserError(f"il trascrittore non ha trascritto {media}: {message}")
-        return summary
+        if summary.get("transcript_json"):
+            return Path(summary["transcript_json"])
+        return transcript_path(media)
 
 
 # --- edit timeline --------------------------------------------------------------
