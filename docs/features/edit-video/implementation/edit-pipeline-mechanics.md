@@ -31,7 +31,9 @@ shell, so paths with spaces work.
 - A file's JSON transcript is `<nome>/<nome>-trascrizione.json` beside it, or
   `<nome>-trascrizione.json` beside a file the transcriber moved into that
   folder, or `<file name without extension> - trascrizione.json` beside it in
-  older folders. When several exist, the scripts read the newest.
+  older folders. When several exist, the scripts read the newest. Files whose
+  names differ only in case, accents or punctuation share the `<nome>`
+  places, so a transcript there counts only if its `file` names this file.
 - The scripts run the transcriber with `--out-dir` set to the video's folder
   and read the transcript at the path its summary gives.
 

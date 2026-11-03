@@ -130,6 +130,16 @@ class ImportTests(unittest.TestCase):
         transcript = json.loads((self.folder / f"{SLUG}-trascrizione.json").read_text(encoding="utf-8"))
         self.assertEqual(transcript["recording"], str(moved))
 
+    def test_keeps_a_transcript_folder_that_still_holds_frames(self):
+        transcripts = self.obs / SLUG
+        (transcripts / "fotogrammi").mkdir(parents=True)
+        (transcripts / f"{SLUG}-trascrizione.json").write_text("{}", encoding="utf-8")
+
+        self.run_import(self.recording)
+
+        self.assertTrue((transcripts / "fotogrammi").is_dir())
+        self.assertTrue((self.folder / SLUG / f"{SLUG}-trascrizione.json").exists())
+
     def test_stops_on_a_missing_recording(self):
         with self.assertRaises(UserError):
             self.run_import(self.obs / "manca.mp4")

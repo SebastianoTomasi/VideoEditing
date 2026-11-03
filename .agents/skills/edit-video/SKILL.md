@@ -54,9 +54,11 @@ check), and `giunzioni.wav` with its transcript (the stretches the last
 The transcriber writes each transcript in a folder of its own, named after the
 file in lowercase with hyphens: `2026-11-03 14-58-48.mp4` gets
 `2026-11-03-14-58-48/2026-11-03-14-58-48-trascrizione.json` and `.txt`, the
-edit `montaggio/montaggio-trascrizione.json`. Older folders have
-`<name> - trascrizione.json` beside the recording instead. The scripts read
-both; never rename or move a transcript or its folder.
+edit `montaggio/montaggio-trascrizione.json`. A recording the transcriber had
+moved into such a folder before the import has its
+`<nome>-trascrizione.json` beside it, and older folders have
+`<name> - trascrizione.json` beside the recording or the edit. The scripts read
+all of these; never rename or move a transcript or its folder.
 
 `tagli.json` lists the recordings in order and every stretch that changes;
 every stretch it does not list is kept:
@@ -100,11 +102,11 @@ it first; update it at each step.
    recording to `recordings` yourself. If it refuses, because a file with the
    same name is already in the folder or a recording is open in OBS or a
    player, report what it says and wait for the user.
-2. **Transcripts.** For each recording without a transcript in either place
-   (see [The video's folder](#the-videos-folder)), run the transcriber in the
-   background and tell the user. One transcription at a time. Take the
-   launcher's command from the `trascrittore` skill, which the transcriber
-   installs with its path on this PC, and run
+2. **Transcripts.** For each recording without a transcript in any of those
+   places (see [The video's folder](#the-videos-folder)), run the
+   transcriber in the background and tell the user. One transcription at a
+   time. Take the launcher's command from the `trascrittore` skill, which the
+   transcriber installs with its path on this PC, and run
    `transcribe "<recording>" --speakers 1 --out-dir "<folder>"` with it.
    `--out-dir` keeps the recording where `tagli.json` names it: without it the
    transcriber moves and renames the recording. Of the `trascrittore` skill

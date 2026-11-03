@@ -316,12 +316,27 @@ def transcript_places(media: Path) -> list[Path]:
     ]
 
 
+def _names(transcript: Path, media: Path) -> bool:
+    """Whether a transcript was made from this media file, as its 'file' says."""
+    try:
+        file = json.loads(transcript.read_text(encoding="utf-8")).get("file")
+    except (OSError, ValueError):
+        return True
+    return not file or str(file).casefold() == media.name.casefold()
+
+
 def transcript_path(media: Path) -> Path:
-    """The newest JSON transcript of a media file, or where transcribe() writes one."""
-    places = transcript_places(media)
-    found = [path for path in places if path.is_file()]
+    """The newest JSON transcript of a media file, or where transcribe() writes one.
+
+    Files whose names differ only in case, accents or punctuation share the
+    '<name>' places, so a transcript there counts only if it names this file.
+    """
+    *shared, own = transcript_places(media)
+    found = [path for path in shared if path.is_file() and _names(path, media)]
+    if own.is_file():
+        found.append(own)
     if not found:
-        return places[0]
+        return shared[0]
     return max(found, key=lambda path: path.stat().st_mtime)
 
 
@@ -376,7 +391,7 @@ def transcribe(media: Path, out_dir: Path, wait_limit_sec: float = 3600) -> Path
             raise UserError(f"il trascrittore non ha trascritto {media}: {message}")
         if summary.get("transcript_json"):
             return Path(summary["transcript_json"])
-        return transcript_path(media)
+        return transcript_path(out_dir / media.name)
 
 
 # --- edit timeline --------------------------------------------------------------

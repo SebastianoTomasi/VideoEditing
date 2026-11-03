@@ -160,10 +160,13 @@ def import_recordings(
         moved[path_key(source)] = target
         report(f"Spostato {target.relative_to(folder).as_posix()}")
     for recording in recordings:
-        # The transcriber's folder of a moved recording goes once the moves leave it empty.
+        if path_key(recording) not in moved:
+            continue
+        # The transcriber's folders of a moved recording go once the moves leave them empty,
+        # including one made here for transcripts that then failed to move.
         name = transcriber_name(recording.stem)
-        for place in (transcript_folder(recording), recording.parent):
-            if path_key(recording) in moved and place.name == name and place.is_dir() and not any(place.iterdir()):
+        for place in (transcript_folder(recording), recording.parent, folder / name):
+            if place.name == name and place.is_dir() and not any(place.iterdir()):
                 try:
                     place.rmdir()
                 except OSError:
