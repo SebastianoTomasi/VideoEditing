@@ -31,6 +31,8 @@ EDGE_PATHS = [
     for var in ("ProgramFiles(x86)", "ProgramFiles")
     if os.environ.get(var)
 ]
+SCREENSHOT_WAIT_SEC = 20
+SCREENSHOT_POLL_SEC = 0.25
 CODEX_BIN = Path(os.environ.get("LOCALAPPDATA", "")) / "OpenAI" / "Codex" / "bin"
 CODEX_IMAGES = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")) / "generated_images"
 PREVIEW_SIZES = [(168, 94), (320, 180), (360, 202)]
@@ -104,16 +106,37 @@ def find_edge() -> Path:
     return Path(found)
 
 
+def wait_for_file(path: Path) -> bool:
+    """Whether path reaches the same non-zero size on two polls in a row
+    within SCREENSHOT_WAIT_SEC."""
+    deadline = time.monotonic() + SCREENSHOT_WAIT_SEC
+    last = 0
+    while True:
+        try:
+            size = path.stat().st_size
+        except OSError:
+            size = 0
+        if size and size == last:
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        last = size
+        time.sleep(SCREENSHOT_POLL_SEC)
+
+
 def render(layout: Path) -> Path:
     """Render an HTML layout at 1280×720 CSS pixels, scale 3, into a JPEG.
 
     Edge writes a relative --screenshot against its own working directory,
-    not ours, so every path starts from the resolved layout.
+    not ours, so every path starts from the resolved layout. Edge can also
+    exit before the screenshot is on disk, so render waits for the file
+    while Edge's profile still exists.
     """
     edge = find_edge()
     layout = layout.resolve()
     png = layout.with_suffix(".png")
     jpg = layout.with_suffix(".jpg")
+    png.unlink(missing_ok=True)  # a leftover of an interrupted run would pass for the new screenshot
     with tempfile.TemporaryDirectory() as profile:
         try:
             result = run([
@@ -124,8 +147,13 @@ def render(layout: Path) -> Path:
             ], timeout=120)
         except subprocess.TimeoutExpired:
             raise UserError(f"Edge non ha finito di renderizzare {layout}")
-    if not png.exists():
-        raise UserError(f"Edge non ha renderizzato {layout}: {result.stderr.strip()[-400:]}")
+        written = wait_for_file(png)
+    if not written:
+        detail = result.stderr.strip()[-400:]
+        raise UserError(
+            f"Edge non ha renderizzato {layout}: non ha scritto nessun file "
+            f"entro {SCREENSHOT_WAIT_SEC} s" + (f" ({detail})" if detail else "")
+        )
     converted = run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(png),
                      "-q:v", "2", str(jpg)])
     png.unlink(missing_ok=True)
