@@ -246,7 +246,8 @@ The edit is final when the user says so. Then:
      out, each with its time in the edit;
    - that `montaggio.srt` is ready to upload.
 
-Then offer thumbnails with the `thumbnail` skill.
+Then go on with the `thumbnail` skill, which proposes ideas and waits for the
+user before generating anything.
 
 ## Deleting the originals
 

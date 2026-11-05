@@ -1,12 +1,13 @@
 ---
 name: thumbnail
-description: Propose three YouTube thumbnails, and titles when needed, for one of the user's videos whose edit is final. Use when the user says an edit is final or asks for a thumbnail, a miniatura, a copertina, or a title for a video ("fammi la thumbnail", "proponimi i titoli").
+description: Propose three YouTube thumbnail ideas, and titles when needed, for one of the user's videos whose edit is final, then make the ones the user approves. Use when the user says an edit is final or asks for a thumbnail, a miniatura, a copertina, or a title for a video ("fammi la thumbnail", "proponimi i titoli").
 ---
 
 # Propose a thumbnail
 
 When the edit of a video is final, you propose three clearly different
-thumbnails, plus three titles if the user has none. The accepted spec is
+thumbnail ideas, plus three titles if the user has none, and make only the
+ideas the user approves. The accepted spec is
 `docs/features/thumbnail/product/propose-a-thumbnail.md`. The style rules are
 in the playbook skill (`.agents/skills/playbook/SKILL.md`), section 3: read it
 first. Talk to the user in Italian.
@@ -41,15 +42,26 @@ chooses and uploads.
 1. **Brief.** Write:
    - the promise of the video in one sentence, from the edit's transcript;
    - the title, or three proposed titles;
-   - the three concepts A, B and C of the playbook, each with 2–4 Italian
-     words that complete the title.
+   - the three concepts A, B and C of the playbook, each as one concrete
+     idea: what the picture shows and the 2–4 Italian words that complete the
+     title. Aim for ideas the viewer finds likeable and remembers, not only
+     correct ones.
 2. **Candidates.** Run
    `python scripts/fotogrammi.py <folder>/montaggio.mp4 <folder>/fotogrammi/miniature --ogni 10`.
    Add `--ritaglio X,Y,W,H` for a sheet of the webcam. Pick the frames that
    show the result or the interface at work, and take full-resolution stills
    with `ffmpeg -ss <t> -i <folder>/montaggio.mp4 -frames:v 1 <folder>/fotogrammi/<name>.png`,
    cropping with `-vf crop=w:h:x:y` where useful.
-3. **Pictures.** For B, generate the face from the reference photo. For A and
+3. **Agree on the ideas.** Stop here and generate nothing yet: image
+   generation is slow and costly, worth spending only on an idea the user
+   likes. Show the user the brief, with the times of the frames each idea
+   would use, and ask which ideas to make or what they have in mind. Refine
+   the ideas with them until they approve one or more, and write the approved
+   ones in `note.md`. Then go on with only those, each keeping its letter for
+   its files; an idea of the user's, or a second variant of one concept,
+   takes the next free letter (D, E…) and the closest layout. For an idea
+   that needs other frames, take them as in step 2.
+4. **Pictures.** For B, generate the face from the reference photo. For A and
    C, generate a sharper or stylized screenshot, or an illustration, only when
    it makes the thumbnail clearer than the real frame.
    - Write a prompt file that starts with `$imagegen` and says: what the
@@ -79,21 +91,23 @@ chooses and uploads.
    - Look at each picture before using it. If it has text, a face unlike the
      photo, or anything the video does not show, fix the prompt and generate
      again; after two failed tries, use a real frame and say so.
-4. **Layouts.** Copy the template into `<folder>/miniatura-A.html`, `-B.html`
-   and `-C.html`. For each, set `data-layout`, fill the slots with images by
-   paths relative to the folder, and remove the slots the layout does not use.
+5. **Layouts.** For each approved idea, copy the template into
+   `<folder>/miniatura-<letter>.html`, set `data-layout`, fill the slots with
+   images by paths relative to the folder, and remove the slots the layout
+   does not use.
    Write the words with one of them accented. Keep everything out of the
    bottom-right corner, where the duration badge sits.
-5. **Render and look.** Run
-   `python scripts/miniature.py render <folder>/miniatura-A.html <folder>/miniatura-B.html <folder>/miniatura-C.html`,
-   then
-   `python scripts/miniature.py anteprima <folder>/miniatura-A.jpg <folder>/miniatura-B.jpg <folder>/miniatura-C.jpg --uscita <folder>/anteprima.png`,
+6. **Render and look.** Run
+   `python scripts/miniature.py render <folder>/miniatura-<letter>.html ...`
+   with every layout, then
+   `python scripts/miniature.py anteprima <folder>/miniatura-<letter>.jpg ... --uscita <folder>/anteprima.png`,
    and look at the preview. If the words cannot be read at the smallest size,
    or the subject is unclear, shorten, enlarge, simplify, and render again.
-6. **Deliver.** Give the user the three JPEG files and the preview, with one
+7. **Deliver.** Give the user the JPEG files and the preview, with one
    line each: the concept, the words, and the times of the source frames. Add
-   the titles if you proposed them. The user chooses.
-7. **Upload list.** Once the user has chosen, list what to upload to YouTube,
+   the titles of these ideas if you proposed them. When there is more than
+   one, the user chooses.
+8. **Upload list.** Once the user has chosen, list what to upload to YouTube,
    in this order: the video `montaggio.mp4`, the title, the description, the
    chosen thumbnail's JPEG, the tags, and the subtitles `montaggio.srt`.
    Link the files, the description's `descrizione.txt` included: the user
