@@ -9,6 +9,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
+from comune import UserError  # noqa: E402
 from fotogrammi import sheet_filter  # noqa: E402
 from miniature import copy_images, preview_graph, render  # noqa: E402
 
@@ -77,6 +78,24 @@ class CopyImagesTests(unittest.TestCase):
         self.assertEqual([p.name for p in copies], ["B-4.webp"])
 
 
+class FakeTime:
+    """Stands in for miniature's time module: sleeping moves the clock on and
+    writes what a late Edge has written by then."""
+
+    def __init__(self):
+        self.now = 0.0
+        self.writes = []  # (seconds, path, the whole file at that moment)
+
+    def monotonic(self):
+        return self.now
+
+    def sleep(self, seconds):
+        self.now += seconds
+        while self.writes and self.writes[0][0] <= self.now:
+            _, path, content = self.writes.pop(0)
+            path.write_bytes(content)
+
+
 class RenderTests(unittest.TestCase):
     """Edge and ffmpeg are faked; the fake Edge, like the real one, writes a
     relative --screenshot against a working directory of its own."""
@@ -115,6 +134,47 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(jpg, self.folder / "miniatura-A.jpg")
         self.assertEqual(jpg.read_bytes(), b"png")
         self.assertFalse((self.folder / "miniatura-A.png").exists())
+
+    def render_with_late_edge(self, *writes):
+        """Render with an Edge that exits at once and writes its screenshot
+        afterwards: writes are (seconds after the start, whole file so far)."""
+        clock = FakeTime()
+
+        def fake_run(args, **kwargs):
+            if args[0] != "msedge.exe":
+                return self.fake_run(args, **kwargs)
+            screenshot = Path(next(a for a in args if a.startswith("--screenshot=")).split("=", 1)[1])
+            clock.writes = [(at, screenshot, content) for at, content in writes]
+            return subprocess.CompletedProcess(args, 0, "", "")
+
+        with mock.patch("miniature.find_edge", return_value=Path("msedge.exe")), \
+                mock.patch("miniature.run", side_effect=fake_run), \
+                mock.patch("miniature.time", clock):
+            try:
+                return render(self.folder / "miniatura-A.html")
+            finally:
+                self.elapsed = clock.now
+
+    def test_waits_until_the_screenshot_stops_growing(self):
+        jpg = self.render_with_late_edge((1.0, b"pn"), (1.1, b"png, all of it"))
+
+        self.assertEqual(jpg.read_bytes(), b"png, all of it")
+        self.assertFalse((self.folder / "miniatura-A.png").exists())
+
+    def test_a_leftover_screenshot_is_not_taken_for_the_new_one(self):
+        (self.folder / "miniatura-A.png").write_bytes(b"old")
+
+        jpg = self.render_with_late_edge((1.0, b"new"))
+
+        self.assertEqual(jpg.read_bytes(), b"new")
+
+    def test_gives_up_when_edge_writes_nothing_in_time(self):
+        with self.assertRaisesRegex(UserError, "non ha scritto nessun file entro 20 s$"):
+            self.render_with_late_edge()
+
+        self.assertGreaterEqual(self.elapsed, 20)
+        self.assertLess(self.elapsed, 21)
+        self.assertFalse((self.folder / "miniatura-A.jpg").exists())
 
 
 if __name__ == "__main__":
