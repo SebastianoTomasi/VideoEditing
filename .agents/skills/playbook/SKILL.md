@@ -110,7 +110,7 @@ These complement the fixed rules of the `edit-video` skill.
    least 4.5:1.
 5. The text completes the title and never repeats it: title and thumbnail tell
    one story. Without a title yet, propose three titles paired with the three
-   thumbnails.
+   ideas.
 6. Curiosity, not clickbait: everything the thumbnail shows happens in the
    video, early. Nothing sexual, gory, shocking or vulgar.
 7. Keep text, numbers and eyes out of the bottom-right corner, where the
@@ -128,7 +128,7 @@ These complement the fixed rules of the `edit-video` skill.
     not have. Text is never generated: it comes from the channel template.
 13. Deliver 16:9 JPEG files at 3840×2160, never below 1280×720, with the
     preview sheet and the line on why each. Never upload: the user chooses. A
-    channel with "advanced features" can test all three in YouTube's Test &
+    channel with "advanced features" can test up to three in YouTube's Test &
     compare, which picks the winner by watch time.
 
 ## Claims to ignore

@@ -28,8 +28,8 @@ thumbnail is made is fixed by the Product foundation.
 
 ## Capability
 
-When the user says the edit of a video is final, the agent proposes three
-clearly different thumbnails, each with one line on why:
+When the user says the edit of a video is final, the agent proposes in words
+three clearly different thumbnail ideas, each with one line on why:
 
 - **A, the result:** an enlarged crop of the tool or the result at work, with
   2–4 words;
@@ -37,9 +37,13 @@ clearly different thumbnails, each with one line on why:
   other;
 - **C, before and after, or one number:** for example "3 ore → 10 min".
 
+Generating the pictures is slow and costly, so the agent generates nothing
+until the user has discussed the ideas and approved one or more, and then
+makes only those.
+
 The text of a thumbnail completes the title and never repeats it. If the user
 already has a title, the agent uses it; otherwise it proposes three titles
-paired with the three thumbnails, so that YouTube's Test & compare can try the
+paired with the three ideas, so that YouTube's Test & compare can try the
 pairs.
 
 The thumbnails are JPG files at 3840×2160 in the video's folder, with a
